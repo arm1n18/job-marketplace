@@ -1,27 +1,28 @@
 'use client';
 
 import { Container } from "@/components/Container";
-import { JobCard, JobMainCard, SearchInput } from "@/components/shared";
+import { JobCard, JobMainCard } from "@/components/shared";
+import { CompanyCard } from "@/components/shared/Company/CompanyCard";
+import { Company } from "@/components/shared/Company/CompanyTypes";
 import { Job } from "@/components/shared/Job/JobDetailsTypes";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-
-export default function Jobs() {
+export default function Jobs({ params: { id } }: { params: { id: string } }) {
+    const [company, setCompany] = useState<Company | null>(null);
+    const [loading, setLoading] = useState(true);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const response = await axios.get("http://192.168.0.106:8080/jobs");
-                console.log("Fetched jobs:", response.data);
-                setJobs(response.data);
+                const response = await axios.get(`http://192.168.0.106:8080/company/${id}`);
+                setCompany(response.data.company);
+                setJobs(response.data.jobs);
 
-                if(response.data.length > 0) {
-                    setSelectedJob(response.data[0]);
+                if(response.data.jobs.length > 0) {
+                    setSelectedJob(response.data.jobs[0]);
                 }
             } catch (err) {
                 console.error("Error fetching jobs:", err)
@@ -31,17 +32,35 @@ export default function Jobs() {
         };
     
         fetchJobs();
-    }, []);
-    
+    }, [id]);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!company) {
+        return <div>No company found.</div>;
+    }
 
     const handleClick = (job: Job) => {
         setSelectedJob(job);
     }
 
-    
     return <>
-        <Container className="mt-12">
-            <SearchInput className="mb-12" />
+        <Container >
+            <CompanyCard
+                className="my-12"
+                company_name={company.company_name}
+                about_us={company.about_us}
+                image_url={company.image_url}
+                website={company.website}
+                linkedin={company.linkedin}
+                facebook={company.facebook} />
+            
+            <div className="mb-12 flex">
+                <p className="text-title-dark">Вакансії компанії {company.company_name}  <span className="text-title-bg">{jobs.length}</span></p>
+            </div>
+
             <div className="flex w-full">
                 <div className="flex flex-col mr-5">
                 {jobs.map(job => (
@@ -94,5 +113,5 @@ export default function Jobs() {
                 )}
             </div>
         </Container>
-    </>;
+    </>
 }

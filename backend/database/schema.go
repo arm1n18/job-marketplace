@@ -17,11 +17,36 @@ func (User) TableName() string {
 	return "User"
 }
 
+type Company struct {
+	ID uint `json:"id" gorm:"unique;primaryKey;autoIncrement"`
+
+	RecruiterID uint `json:"recruiter_id" gorm:"index"`
+	Recruiter   User `json:"recruiter" gorm:"foreignKey:RecruiterID"`
+
+	CompanyName string `json:"company_name"`
+	AboutUs     string `json:"about_us"`
+	ImageUrl    string `json:"image_url" gorm:"unique"`
+
+	WebSite  string `json:"website"`
+	LinkedIn string `json:"linkedin"`
+	Facebook string `json:"facebook"`
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (Company) TableName() string {
+	return "Company"
+}
+
 type Job struct {
 	ID uint `json:"id" gorm:"unique;primaryKey;autoIncrement"`
 
 	CreatorID uint `json:"creator_id" gorm:"index"`
 	Creator   User `json:"creator" gorm:"foreignKey:CreatorID"`
+
+	CompanyID uint    `json:"company_id" gorm:"index"`
+	Company   Company `json:"company" gorm:"foreignKey:CompanyID"`
 
 	Title        string `json:"title"`
 	Description  string `json:"description"`
@@ -36,7 +61,8 @@ type Job struct {
 
 	KeyWords *[]Keyword `json:"keywords" gorm:"foreignKey:JobID"`
 
-	Salary uint `json:"salary"`
+	SalaryFrom uint `json:"salary_from"`
+	SalaryTo   uint `json:"salary_to"`
 
 	CityID *uint `json:"city_id" gorm:"index"`
 	City   *City `json:"city" gorm:"foreignKey:CityID"`
@@ -74,8 +100,8 @@ type Resume struct {
 
 	Salary uint `json:"salary"`
 
-	CityID uint     `json:"city_id" gorm:"index"`
-	City   Category `json:"city" gorm:"foreignKey:CityID"`
+	CityID *uint `json:"city_id" gorm:"index"`
+	City   *City `json:"city" gorm:"foreignKey:CityID"`
 
 	Experience uint `json:"experience"`
 

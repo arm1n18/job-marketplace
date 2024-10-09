@@ -16,7 +16,7 @@ type Config struct {
 
 func LoadDataBaseConfig() *Config {
 	if err := godotenv.Load("../../.env"); err != nil {
-		log.Fatal("Ошибка загрузки .env файла")
+		log.Fatalf("Ошибка загрузки .env файла: %v", err)
 	}
 
 	return &Config{
@@ -26,3 +26,5 @@ func LoadDataBaseConfig() *Config {
 		DBName:   os.Getenv("POSTGRES_DATABASE"),
 	}
 }
+
+//"../../.env" - for migrate

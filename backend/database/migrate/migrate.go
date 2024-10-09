@@ -40,6 +40,20 @@ func MigrateDatabase() {
 	log.Println("База данных создана")
 }
 
+func Up() error {
+	cfg := config.LoadDataBaseConfig()
+
+	dsn := "host=" + cfg.Host + " user=" + cfg.User + " password=" + cfg.Password + " dbname=" + cfg.DBName + " sslmode=require"
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Ошибка подключения к Vercel:", err)
+	}
+
+	return db.Migrator().DropColumn(&database.Company{}, "linked_in")
+}
+
 func main() {
-	MigrateDatabase()
+	Up()
+
 }
