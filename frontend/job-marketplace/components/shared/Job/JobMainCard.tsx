@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 import { KeyWord } from "../../ui/key-word";
-import { ExternalLink, User } from "lucide-react";
+import { User } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Job } from "./JobDetailsTypes";
-import { Parameters } from "@/components/ui/parametrs";
-import { ParameterType } from "@/types/types";
 import { SectionDescription } from "@/components/ui/section-description";
+import { ParametersLine } from "@/components/ui/parametrs-line";
+import { NoImgAvatars } from "@/components/ui/noImgAvatars";
 
 interface Props extends Job{
     keyInfo?: string[];
@@ -28,28 +28,33 @@ export const JobMainCard: React.FC<Props> = ({
     city_name,
     salary_from,
     salary_to,
-    website,
+    created_at,
     className }) => {
         
-        const parameters = [
-            { id: 1, name: "Виключно", description: experience ? `від ${experience} ${experience > 1 ? "років" : "року"} досвіду` : "Без досвіду" },
-            { id: 2, name: "Зайнятість", description: employment_name },
-            { id: 3, name: "Кандидат з", description: city_name || "Україна" },
-            { id: 4, name: "Офіс", description: city_name || "Ні" },
-            { id: 5, name: "Напрямок", description: subcategory_name || category_name },
-            { id: 6, name: "Домен", description: "Marketplace" },
-        ];
+        // const parameters = [
+        //     { id: 1, name: "Виключно", description: experience ? `від ${experience} ${experience > 1 ? "років" : "року"} досвіду` : "Без досвіду" },
+        //     { id: 2, name: "Зайнятість", description: employment_name },
+        //     { id: 3, name: "Кандидат з", description: city_name || "Україна" },
+        //     { id: 4, name: "Офіс", description: city_name || "Ні" },
+        //     { id: 5, name: "Напрямок", description: subcategory_name || category_name },
+        //     { id: 6, name: "Домен", description: "Marketplace" },
+        // ];
 
+        const safeCompanyName = company_name || 'default-company';
     return (
-        
+
         <>  
-            <div className={cn("flex-grow bg-gray-selected rounded-lg sticky p-16", className)}>
+            <div className={cn("flex-grow bg-gray-selected rounded-lg sticky p-8", className)}> {/* было p-16 */}
                 <header className="w-full flex justify-between items-center">
                         <div className="flex items-center gap-6 justify-between">
-                            <img className="rounded-[8px] w-16 h-16" src={image_url} alt="" />
+                            {
+                                image_url ? (
+                                    <img className="rounded-[8px] w-16 h-16" src={image_url} alt="" />
+                                ) : (<NoImgAvatars className="rounded-[8px] w-16 h-16 text-2xl" companyName={company_name} />)
+                            }
                             <div className="flex flex-col gap-3">
                                 <h2 className="text-title-bg leading-none">{title}</h2>
-                                <a className="text-common-sm hover:underline leading-none flex gap-1 w-fit" href={`/company/${company_name.replace(' ', '-')}`} target="_blank">
+                                <a className="text-common-sm hover:underline leading-none flex gap-1 w-fit" href={`/company/${safeCompanyName.replace(' ', '-')}`} target="_blank">
                                     {company_name}
                                     <User className="size-3" strokeWidth={3} />
                                 </a>
@@ -78,7 +83,14 @@ export const JobMainCard: React.FC<Props> = ({
 
                 <div className="border-gray-primary my-6" />
 
-                <Parameters parameters={parameters} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <ParametersLine IconName="PcCase" name="Напрямок:" description={`${subcategory_name || category_name}`}/>
+                    <ParametersLine IconName="MapPin" name="Кандидат з:" description={`${city_name || "Україна"}`}/>
+                    <ParametersLine IconName="CalendarFold" name="Виключно:" description={experience ? `від ${experience} ${experience > 1 ? "років" : "року"} досвіду` : "Без досвіду" }/>
+                    <ParametersLine IconName="Building" name="Офіс:" description={`${city_name || "Ні"}`}/>
+                    <ParametersLine IconName="BriefcaseBusiness" name="Зайнятість:" description={`${employment_name}`}/>
+                    <ParametersLine IconName="CalendarClock" name="Опубліковано:" description={created_at && new Date(created_at).toLocaleDateString("uk-UA", {day: "numeric", month: "long"})}/>
+                </div>
 
                 <div className="border-gray-primary my-6" />
 

@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Job } from "./JobDetailsTypes";
+import { IsNew } from "@/components/ui/checkNewness";
+import { NoImgAvatars } from "@/components/ui/noImgAvatars";
 
 interface Props extends Job{
     keyInfo: string[];
@@ -17,6 +19,7 @@ export const JobCard: React.FC<Props> = ({
     salary_to,
     keyInfo,
     onClick,
+    created_at,
     className }) => {
         
     return (
@@ -25,9 +28,15 @@ export const JobCard: React.FC<Props> = ({
             onClick={onClick}
             style={{ cursor: 'pointer' }}
         >
-            <div className="w-full flex items-center gap-3">
-                <img className="rounded-full w-6 h-6" src={image_url} alt="" />
-                <a className="text-common-sm leading-none hover:underline" href={`/company/${company_name.replace(' ', '-')}`}>{company_name}</a>
+            <div className="w-full justify-between flex">
+                <div className="flex items-center gap-3">
+                   { image_url ? (
+                        <img className="rounded-full w-6 h-6" src={image_url} alt="" />
+                    ) : (<NoImgAvatars className="rounded-full w-6 h-6 text-[12px]" companyName={company_name} />)}
+                    <a className="text-common-sm leading-none hover:underline" href={`/company/${company_name.replace(' ', '-')}`}>{company_name}</a>
+                </div>
+
+                <IsNew created_at={created_at?.toString() ?? ''} />
             </div>
 
             <h2 className="text-title my-3 leading-none">

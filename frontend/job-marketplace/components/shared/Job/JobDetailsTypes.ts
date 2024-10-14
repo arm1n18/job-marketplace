@@ -19,4 +19,5 @@ export interface Job {
     subcategory_name: string;
     city_name: string;
     website?: string;
+    created_at?: Date;
   }

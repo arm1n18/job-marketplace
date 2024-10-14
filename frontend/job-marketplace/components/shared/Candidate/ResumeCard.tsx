@@ -13,6 +13,7 @@ interface Props extends Resume{
 }
 
 export const ResumeCard: React.FC<Props> = ({
+    id,
     title,
     work_experience,
     salary,
@@ -39,8 +40,8 @@ export const ResumeCard: React.FC<Props> = ({
             style={{ cursor: 'pointer' }}
         >
             <div className="w-full flex items-center justify-between mb-3">
-                <h2 className="text-title-bg leading-none"><a href={""}>{title}</a></h2>
-                <span className="text-salary-bg leading-none">
+                <h2 className="text-title leading-none w-fit max-w-72"><a href={`/candidates/${id}`}>{title}</a></h2>
+                <span className="text-salary leading-none ml-2">
                     {salary && `від $${salary} `}
                 </span>
             </div>

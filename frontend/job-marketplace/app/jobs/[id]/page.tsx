@@ -3,6 +3,7 @@
 import { Container } from "@/components/Container";
 import { JobMainCard, SimilarJobs } from "@/components/shared";
 import { Job } from "@/components/shared/Job/JobDetailsTypes";
+import { JobMainCardSkeleton } from "@/components/shared/Skeletons/JobMainCardSkeleton";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -11,23 +12,27 @@ export default function JobsDetailPage({ params: { id } }: { params: { id: numbe
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchJobs = async () => {
+        const fetchJob = async () => {
             try {
                 const response = await axios.get(`http://192.168.0.106:8080/jobs/${id}`);
                 console.log("Fetched job:", response.data);
                 setJob(response.data);
             } catch (err) {
-                console.error("Error fetching jobs:", err)
+                console.error("Error fetching job:", err)
             } finally {
                 setLoading(false);
             }
         };
     
-        fetchJobs();
+        fetchJob();
     }, [id]);
 
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <Container>
+                <JobMainCardSkeleton className="my-12"/>
+            </Container>
+        );
     }
 
     if (!job) {

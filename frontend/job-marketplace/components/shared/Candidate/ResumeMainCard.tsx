@@ -5,13 +5,16 @@ import { Resume } from "./ResumeDetailsTypes";
 import { Button } from "@/components/ui/button";
 import { Parameters } from "@/components/ui/parametrs";
 import { SectionDescription } from "@/components/ui/section-description";
+import { ParametersLine } from "@/components/ui/parametrs-line";
 
 interface Props extends Resume{
     keywords?: KeywordsType[];
+    isMainPage?: boolean;
     className ?: string;
 }
 
 export const ResumeMainCard: React.FC<Props> = ({
+    isMainPage,
     experience,
     title,
     employment_name,
@@ -23,20 +26,20 @@ export const ResumeMainCard: React.FC<Props> = ({
     achievements,
     keywords,
     className }) => {
-        const parameters = [
-            { id: 1, name: "Місто", description: city_name || "Україна" },
-            { id: 2, name: "Досвід", description: experience ? `${experience} ${experience > 5 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду` : "Без досвіду" },
-            { id: 3, name: "Зайнятість", description: employment_name },
-            { id: 4, name: "Напрямок", description: subcategory_name || category_name },
-        ];
+        // const parameters = [
+        //     { id: 1, name: "Місто", description: city_name || "Україна" },
+        //     { id: 2, name: "Досвід", description: experience ? `${experience} ${experience > 5 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду` : "Без досвіду" },
+        //     { id: 3, name: "Зайнятість", description: employment_name },
+        //     { id: 4, name: "Напрямок", description: subcategory_name || category_name },
+        // ];
 
     return (
         <>  
-            <div className={cn("flex-grow bg-gray-selected rounded-lg sticky p-5", className)}>
+            <div className={cn("flex-grow bg-gray-selected rounded-lg sticky p-8", className)}>
                 <header className="w-full flex justify-between items-center">
                         <div className="w-full flex justify-between">
                                 <h2 className="text-title-bg leading-none">{title}</h2>
-                                <span className="text-salary-bg leading-none">${salary}</span>
+                                <span className="text-salary-bg leading-none">${salary}{isMainPage ? ' / на місяць' : ''}</span>
                         </div>
                 </header>
 
@@ -44,7 +47,7 @@ export const ResumeMainCard: React.FC<Props> = ({
                     <>
                         <div className="flex items-center gap-3 flex-wrap mt-6">
                             {keywords.map((keyword) => (
-                                <KeyWord className="key-word-block" key={keyword.id} keyword={keyword.name} />
+                                <KeyWord className="key-word-block-bg" key={keyword.id} keyword={keyword.name} />
                             ))}
                         </div>
                     </>
@@ -52,7 +55,12 @@ export const ResumeMainCard: React.FC<Props> = ({
                     
                 <div className="border-gray-primary my-6" />
 
-                <Parameters parameters={parameters} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <ParametersLine IconName="PcCase" name="Напрямок:" description={`${subcategory_name || category_name}`}/>
+                    <ParametersLine IconName="MapPin" name="Місто:" description={`${city_name || "Україна"}`}/>
+                    <ParametersLine IconName="CalendarFold" name="Досвід:" description = {experience ? `${experience} ${experience > 5 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду` : "Без досвіду" }/>
+                    <ParametersLine IconName="BriefcaseBusiness" name="Зайнятість:" description={`${employment_name}`}/>
+                </div>
 
                 <div className="border-gray-primary my-6" />
 

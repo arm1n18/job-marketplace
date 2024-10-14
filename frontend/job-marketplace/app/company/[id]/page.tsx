@@ -1,23 +1,35 @@
 'use client';
 
 import { Container } from "@/components/Container";
-import { JobCard, JobMainCard } from "@/components/shared";
+import { FiltersSection, JobCard, JobMainCard, SearchInput } from "@/components/shared";
 import { CompanyCard } from "@/components/shared/Company/CompanyCard";
 import { Company } from "@/components/shared/Company/CompanyTypes";
 import { Job } from "@/components/shared/Job/JobDetailsTypes";
+import { CompanyCardSkeleton } from "@/components/shared/Skeletons/CompanyCardSkeleton";
+import { JobCardSkeleton } from "@/components/shared/Skeletons/JobCardSkeleton";
+import { JobMainCardSkeleton } from "@/components/shared/Skeletons/JobMainCardSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Jobs({ params: { id } }: { params: { id: string } }) {
     const [company, setCompany] = useState<Company | null>(null);
     const [loading, setLoading] = useState(true);
-    const [jobs, setJobs] = useState<Job[]>([]);
+    const [jobs, setJobs] = useState<Job[] | null>([]);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+
+    const router = useRouter();
+
+    const searchParams = useSearchParams()
+    const searchFilter = searchParams.get('search')
 
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const response = await axios.get(`http://192.168.0.106:8080/company/${id}`);
+                const params = new URLSearchParams();
+                if (searchFilter) params.append('search', searchFilter);
+                const response = await axios.get(`http://192.168.0.106:8080/company/${id}?${params.toString()}`);
                 setCompany(response.data.company);
                 setJobs(response.data.jobs);
 
@@ -32,10 +44,27 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
         };
     
         fetchJobs();
-    }, [id]);
+    }, [id, searchFilter]);
 
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <Container>
+                <CompanyCardSkeleton className="my-12"/>
+                <Skeleton className="w-1/4 h-9 mb-12"/>
+                <SearchInput
+                    onSearch={() => {}}
+                />
+                <FiltersSection className="my-12"/>
+                <div className="flex w-full">
+                    <div className="flex flex-col mr-5">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                            <JobCardSkeleton key={index} />
+                        ))}
+                    </div>
+                    <JobMainCardSkeleton />
+                </div>
+            </Container>
+        );
     }
 
     if (!company) {
@@ -46,8 +75,14 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
         setSelectedJob(job);
     }
 
+    const handleSearch = async (query: string) => {
+        if(query.trim() === "" || query.length < 2) return;
+        router.push(`/company/${id}/?search=${query}`);
+    }
+
     return <>
         <Container >
+            
             <CompanyCard
                 className="my-12"
                 company_name={company.company_name}
@@ -58,12 +93,16 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
                 facebook={company.facebook} />
             
             <div className="mb-12 flex">
-                <p className="text-title-dark">Вакансії компанії {company.company_name}  <span className="text-title-bg">{jobs.length}</span></p>
+                <p className="text-title-dark">Вакансії компанії {company.company_name}  <span className="text-title-bg">{jobs ? jobs?.length : 0}</span></p>
             </div>
+            
+            <SearchInput onSearch={handleSearch} />
+            <FiltersSection className="my-12"/>
 
-            <div className="flex w-full">
+            { jobs &&
+                <div className="flex w-full">
                 <div className="flex flex-col mr-5">
-                {jobs.map(job => (
+                {jobs && jobs.map(job => (
                         <JobCard
                             onClick={() => handleClick(job)}
                             key={job.id}
@@ -74,6 +113,7 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
                             description={job.description}
                             salary_from={job.salary_from}
                             salary_to={job.salary_to}
+                            created_at = {job.created_at}
                             keyInfo={[
                                 job.city_name || "Україна",
                                 job.employment_name,
@@ -85,7 +125,7 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
                         />
                     ))}
                 </div>
-                {selectedJob && (
+                {jobs && selectedJob && (
                     <JobMainCard
                         className="h-screen overflow-auto scrollbar top-6"
                         company_name={selectedJob.company_name}
@@ -109,9 +149,12 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
                         category_name={selectedJob.category_name}
                         employment_name={selectedJob.employment_name}
                         subcategory_name={selectedJob.subcategory_name}
-                        city_name={selectedJob.city_name} />
+                        city_name={selectedJob.city_name}
+                        created_at = {selectedJob.created_at}
+                    />
                 )}
             </div>
+            }
         </Container>
     </>
 }
