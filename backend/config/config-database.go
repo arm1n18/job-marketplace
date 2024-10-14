@@ -15,7 +15,7 @@ type Config struct {
 }
 
 func LoadDataBaseConfig() *Config {
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Ошибка загрузки .env файла: %v", err)
 	}
 

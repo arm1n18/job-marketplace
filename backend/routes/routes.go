@@ -9,6 +9,11 @@ import (
 func InitRouter(r *gin.Engine) {
 	r.GET("/jobs", api.GetJobs)
 	r.GET("/jobs/:id", api.GetJob)
-	r.GET("/company/:name", api.GetCompany)
+	//r.GET("/jobs/search", api.SearchJob)
+
 	r.GET("/candidates", api.GetResumes)
+	r.GET("/candidates/:id", api.GetResume)
+	//r.GET("/candidates/search", api.SearchResume)
+
+	r.GET("/company/:name", api.GetCompany)
 }

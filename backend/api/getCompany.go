@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,14 @@ type Company struct {
 }
 
 func GetCompany(c *gin.Context) {
+	search := c.Query("search")
+	category := c.Query("category")
+	subcategory := c.Query("subcategory")
+	experience := c.Query("experience")
+	employment := c.Query("employment")
+	city := c.Query("city")
+	salary_from := c.Query("salary_from")
+
 	var company Company
 	var jobs []Job
 
@@ -58,7 +67,6 @@ func GetCompany(c *gin.Context) {
 
 	row := db.QueryRow(query, companyName)
 	err = row.Scan(&company.ID, &company.CompanyName, &company.AboutUs, &company.ImageUrl, &company.WebSite, &company.LinkedIn, &company.Facebook)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Company not found"})
@@ -85,10 +93,65 @@ func GetCompany(c *gin.Context) {
 	LEFT JOIN "Employment" e ON j.employment_id = e.ID
 	LEFT JOIN "User" u ON j.creator_id = u.ID
 	LEFT JOIN "Company" co ON u.ID = co.recruiter_id
-	WHERE co.ID = $1
+	WHERE co.ID = $1 AND TRUE
 	`
+	var queryParams []any
+	queryParams = append(queryParams, company.ID)
 
-	rows, err := db.Query(jobsQuery, company.ID)
+	argID := 2
+
+	if search != "" {
+		jobsQuery += ` AND (
+			j.title ILIKE '%' || $` + strconv.Itoa(argID) + ` || '%' 
+			OR c.Name ILIKE '%' || $` + strconv.Itoa(argID) + ` || '%'
+			OR s.Name ILIKE '%' || $` + strconv.Itoa(argID) + ` || '%'
+			OR co.company_name ILIKE '%' || $` + strconv.Itoa(argID) + ` || '%'
+		)`
+		queryParams = append(queryParams, search)
+		argID++
+	}
+
+	if category != "" {
+		jobsQuery += ` AND c.Name = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, category)
+		argID++
+	}
+
+	if subcategory != "" {
+		jobsQuery += ` AND s.Name = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, subcategory)
+		argID++
+	}
+
+	if experience != "" {
+		jobsQuery += ` AND j.Experience = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, experience)
+		argID++
+	}
+
+	if employment != "" {
+		jobsQuery += ` AND e.Name = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, employment)
+		argID++
+	}
+
+	if city != "" {
+		jobsQuery += ` AND ct.Name = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, city)
+		argID++
+	}
+
+	if salary_from != "" {
+		jobsQuery += ` AND (j.salary_from >= $` + strconv.Itoa(argID) + ` OR j.salary_to >= $` + strconv.Itoa(argID) + `)`
+		queryParams = append(queryParams, salary_from)
+		argID++
+	}
+
+	jobsQuery += ` ORDER BY j.ID DESC
+	LIMIT 15`
+
+	rows, err := db.Query(jobsQuery, queryParams...)
+
 	if err != nil {
 		log.Printf("Ошибка выполнения запроса: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка запроса к базе данных"})

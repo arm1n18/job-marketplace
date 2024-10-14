@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,15 @@ type Resume struct {
 }
 
 func GetResumes(c *gin.Context) {
+
+	search := c.Query("search")
+	category := c.Query("category")
+	subcategory := c.Query("subcategory")
+	experience := c.Query("experience")
+	employment := c.Query("employment")
+	city := c.Query("city")
+	salary := c.Query("salary")
+
 	var resumes []Resume
 
 	cfg := config.LoadDataBaseConfig()
@@ -47,7 +57,7 @@ func GetResumes(c *gin.Context) {
 	}
 	defer db.Close()
 
-	rows, err := db.Query(`
+	query := (`
 	SELECT r.ID, r.creator_id, r.Title, r.work_experience AS WorkExperience, r.Achievements,
 	       c.Name AS CategoryName,
 	       s.Name AS SubcategoryName,
@@ -60,8 +70,61 @@ func GetResumes(c *gin.Context) {
 	LEFT JOIN "City" ct ON r.city_id = ct.ID
 	LEFT JOIN "Employment" e ON r.employment_id = e.ID
 	LEFT JOIN "User" u ON r.creator_id = u.ID
+	WHERE TRUE
 	`)
 
+	var queryParams []interface{}
+
+	argID := 1
+
+	if search != "" {
+		query += `AND (r.title ILIKE '%' || $` + strconv.Itoa(argID) + ` || '%'
+		OR c.Name ILIKE '%' || $` + strconv.Itoa(argID) + ` || '%'
+		OR s.Name ILIKE '%' || $` + strconv.Itoa(argID) + ` || '%')`
+		queryParams = append(queryParams, search)
+		argID++
+	}
+
+	if category != "" {
+		query += ` AND c.Name = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, category)
+		argID++
+	}
+
+	if subcategory != "" {
+		query += ` AND s.Name = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, subcategory)
+		argID++
+	}
+
+	if experience != "" {
+		query += ` AND r.Experience = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, experience)
+		argID++
+	}
+
+	if employment != "" {
+		query += ` AND e.Name = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, employment)
+		argID++
+	}
+
+	if city != "" {
+		query += ` AND ct.Name = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, city)
+		argID++
+	}
+
+	if salary != "" {
+		query += ` AND r.salary = $` + strconv.Itoa(argID)
+		queryParams = append(queryParams, salary)
+		argID++
+	}
+
+	query += ` ORDER BY r.ID DESC
+	LIMIT 15`
+
+	rows, err := db.Query(query, queryParams...)
 	if err != nil {
 		log.Printf("Ошибка выполнения запроса: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка запроса к базе данных"})
