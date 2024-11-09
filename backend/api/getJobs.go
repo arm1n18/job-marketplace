@@ -22,7 +22,7 @@ type Job struct {
 	CategoryName    string    `json:"category_name"`
 	SubcategoryName *string   `json:"subcategory_name"`
 	CityName        *string   `json:"city_name"`
-	Experience      uint      `json:"experience"`
+	Experience      float64   `json:"experience"`
 	EmploymentName  string    `json:"employment_name"`
 	SalaryFrom      *uint     `json:"salary_from"`
 	SalaryTo        *uint     `json:"salary_to"`
@@ -53,8 +53,8 @@ func GetJobs(c *gin.Context) {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Println("Ошибка подключения к Vercel:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка запроса к базе данных"})
+		log.Println("Помилка підключення до бази даних:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 		return
 	}
 	defer db.Close()
@@ -94,13 +94,13 @@ func GetJobs(c *gin.Context) {
 	}
 
 	if category != "" {
-		query += ` AND c.Name = $` + strconv.Itoa(argID)
+		query += ` AND c.Name ILIKE $` + strconv.Itoa(argID)
 		queryParams = append(queryParams, category)
 		argID++
 	}
 
 	if subcategory != "" {
-		query += ` AND s.Name = $` + strconv.Itoa(argID)
+		query += ` AND s.Name ILIKE $` + strconv.Itoa(argID)
 		queryParams = append(queryParams, subcategory)
 		argID++
 	}
@@ -118,12 +118,19 @@ func GetJobs(c *gin.Context) {
 	}
 
 	if city != "" {
-		query += ` AND ct.Name = $` + strconv.Itoa(argID)
-		queryParams = append(queryParams, city)
-		argID++
+		if city == "Вся Україна" {
+			return
+		} else {
+			query += ` AND ct.Name = $` + strconv.Itoa(argID)
+			queryParams = append(queryParams, city)
+			argID++
+		}
 	}
 
 	if salary_from != "" {
+		if salary_from == "0" {
+			return
+		}
 		query += ` AND (j.salary_from >= $` + strconv.Itoa(argID) + ` OR j.salary_to >= $` + strconv.Itoa(argID) + `)`
 		queryParams = append(queryParams, salary_from)
 		argID++
@@ -141,7 +148,7 @@ func GetJobs(c *gin.Context) {
 	rows, err := db.Query(query, queryParams...)
 	if err != nil {
 		log.Printf("Ошибка выполнения запроса: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка запроса к базе данных"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 		return
 	}
 	defer rows.Close()

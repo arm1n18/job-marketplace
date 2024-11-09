@@ -1,11 +1,12 @@
 package main
 
 import (
-	//"net/http"
+	"database/sql"
 	"log"
 	"os"
 	"time"
 
+	"backend/config"
 	"backend/routes"
 
 	"github.com/gin-contrib/cors"
@@ -19,6 +20,16 @@ func main() {
 	}
 
 	r := gin.Default()
+
+	cfg := config.LoadDataBaseConfig()
+
+	dsn := "host=" + cfg.Host + " user=" + cfg.User + " password=" + cfg.Password + " dbname=" + cfg.DBName + " sslmode=require"
+
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return
+	}
+	defer db.Close()
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://192.168.0.106:3000"},
@@ -34,7 +45,7 @@ func main() {
 		c.Next()
 	})
 
-	routes.InitRouter(r)
+	routes.InitRouter(r, db)
 
 	port := os.Getenv("PORT")
 

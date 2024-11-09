@@ -5,65 +5,61 @@ import { FiltersSection, SearchInput } from "@/components/shared";
 import { ResumeMainCard } from "@/components/shared/Candidate/ResumeMainCard";
 import { ResumeCard } from "@/components/shared/Candidate/ResumeCard";
 import { Resume } from "@/components/shared/Candidate/ResumeDetailsTypes";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { ResumeCardSkeleton } from "@/components/shared/Skeletons/ResumeCardSkeleton";
 import { ResumeMainCardSkeleton } from "@/components/shared/Skeletons/ResumeMainCardSkeleton";
 import { useRouter, useSearchParams } from "next/navigation";
+import { FiltersType } from "@/types/types";
+import { useQueryParams } from "@/components/hook/useQueryParams";
+import { fetchData } from "@/components/hook/fetchData";
+import { filtersList } from "@/components/shared/filtersList";
 
 
 export default function Candidates() {
     const [resumes, setResumes] = useState<Resume[]>([]);
     const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
     const [loading, setLoading] = useState(true);
+    
     const router = useRouter();
-
     const searchParams = useSearchParams()
     const searchFilter = searchParams.get('search')
 
+    const [filters, setFilters] = useState<FiltersType>(filtersList(searchParams));
+    
+    const updateFilters = (updatedFilters: Partial<FiltersType>) => {
+        setFilters((filters) => ({
+            ...filters,
+            ...updatedFilters,
+        }));
+    };
+
+    const params = useQueryParams(searchFilter, filters);
+
     useEffect(() => {
-        const fetchCandidates = async () => {
-            try {
-                const params = new URLSearchParams();
-                if (searchFilter) params.append('search', searchFilter);
+        router.push(`?${params.toString()}`);
+        fetchData({url: "candidates", params, setLoading, setData: setResumes, setSelectedData: setSelectedResume});
+    }, [searchFilter, filters]);
 
-                const response = await axios.get(`http://192.168.0.106:8080/candidates?${params.toString()}`);
-                console.log("Fetched candidates:", response.data);
-                setResumes(response.data);
-
-                if(response.data.length > 0) {
-                    setSelectedResume(response.data[0]);
-                }
-            } catch (err) {
-                console.error("Error fetching jobs:", err)
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        
-        fetchCandidates();
-    }, [searchFilter]);
-
+    const handleSearch = async (query: string) => {
+        if(query.trim() === "") router.push(`/candidates`);
+        if( query.length < 2) return;
+        router.push(`?search=${query}`);
+    }
 
     const handleClick = (resume: Resume) => {
         setSelectedResume(resume);
     }
 
-    const handleSearch = async (query: string) => {
-        if(query.trim() === "" || query.length < 2) return;
-        router.push(`/candidates/?search=${query}`);
-    }
 
     return (
         <>
+            <div className="mx-2">
             <Container className="mt-12">
                 <SearchInput
                     onSearch={handleSearch}
                     className="mb-12"
                 />
-                <FiltersSection
-                    className="my-12" />
+                <FiltersSection onUpdateFilters={updateFilters} className="my-12"/>
                 <div className="flex w-full">
                     <div className="flex flex-col mr-5">
                     {loading ? (
@@ -71,7 +67,7 @@ export default function Candidates() {
                             <ResumeCardSkeleton key={index} />
                         ))
                     ) : (
-                        resumes != null && resumes.map(resume => (
+                        resumes != null && resumes.length > 0 && resumes.map(resume => (
                             <ResumeCard
                                 key={resume.id}
                                 id={resume.id}
@@ -104,7 +100,7 @@ export default function Candidates() {
                     {loading ? (
                         <ResumeMainCardSkeleton className="h-screen overflow-auto scrollbar top-6"/>
                     ):(
-                        resumes != null && selectedResume && (
+                        resumes != null && resumes.length > 0 && selectedResume && (
                     <ResumeMainCard
                         className="h-screen overflow-auto scrollbar top-6"
                         title={selectedResume.title}
@@ -126,6 +122,7 @@ export default function Candidates() {
                     ))}
                 </div>
             </Container>
+            </div>
         </>
     )
 }

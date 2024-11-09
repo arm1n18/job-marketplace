@@ -17,12 +17,12 @@ func main() {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("Ошибка подключения к Vercel:", err)
+		log.Fatal("Помилка підключення до бази даних:", err)
 	}
 	defer db.Close()
 
 	if err := db.Ping(); err != nil {
-		log.Fatal("Ошибка [PING] к Vercel:", err)
+		log.Fatal("Помилка [PING] до бази даних:", err)
 	}
 
 	// Вставка пользователя
@@ -33,7 +33,7 @@ func main() {
 
 	_, err = db.Exec(sqlStatement, "test3@gmail.com", hash, "CANDIDATE")
 	if err != nil {
-		log.Fatalf("Ошибка вставки данных: %v", err)
+		log.Fatalf("Помилка вставки даних: %v", err)
 	}
 
 	// Категорий и под категорий
@@ -43,7 +43,7 @@ func main() {
 	// ('JavaScript / Front-End', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 	// _, err = db.Exec(sqlCategory)
 	// if err != nil {
-	// 	log.Fatalf("Ошибка вставки данных: %v", err)
+	// 	log.Fatalf("Помилка вставки даних: %v", err)
 	// }
 
 	// var categoryID int

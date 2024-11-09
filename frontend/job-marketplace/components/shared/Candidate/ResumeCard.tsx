@@ -46,7 +46,7 @@ export const ResumeCard: React.FC<Props> = ({
                 </span>
             </div>
             <p className="text-common-sm leading-none mb-3">Україна 
-                {city_name && ` • ${city_name}`} • {experience} {experience > 5 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду
+                {city_name && ` • ${city_name}`} • {experience} {experience > 4 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду
                 • {subcategory_name || category_name}
                 </p>
 
@@ -70,7 +70,7 @@ export const ResumeCard: React.FC<Props> = ({
             
             {keywords?.length ? (
                 <>
-                    <div className="border-gray-primary my-3" />
+                    <div className="line-gray my-3" />
                     <div className="flex items-center gap-3 flex-wrap">
                         {keywords.map((key, index) => (
                             <span className="key-word-block" key={index}>{key.name}</span>

@@ -4,11 +4,13 @@ import { Container } from "@/components/Container";
 import { FiltersSection, JobCard, JobMainCard, SearchInput } from "@/components/shared";
 import { CompanyCard } from "@/components/shared/Company/CompanyCard";
 import { Company } from "@/components/shared/Company/CompanyTypes";
+import { filtersList } from "@/components/shared/filtersList";
 import { Job } from "@/components/shared/Job/JobDetailsTypes";
 import { CompanyCardSkeleton } from "@/components/shared/Skeletons/CompanyCardSkeleton";
 import { JobCardSkeleton } from "@/components/shared/Skeletons/JobCardSkeleton";
 import { JobMainCardSkeleton } from "@/components/shared/Skeletons/JobMainCardSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FiltersType } from "@/types/types";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,9 +22,18 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
     const router = useRouter();
-
     const searchParams = useSearchParams()
     const searchFilter = searchParams.get('search')
+
+    const [filters, setFilters] = useState<FiltersType>(filtersList(searchParams));
+
+    const updateFilters = (updatedFilters: Partial<FiltersType>) => {
+        setFilters((filters) => ({
+            ...filters,
+            ...updatedFilters,
+        }));
+    };
+
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -54,7 +65,7 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
                 <SearchInput
                     onSearch={() => {}}
                 />
-                <FiltersSection className="my-12"/>
+                <FiltersSection onUpdateFilters={updateFilters} className="my-12"/>
                 <div className="flex w-full">
                     <div className="flex flex-col mr-5">
                         {Array.from({ length: 5 }).map((_, index) => (
@@ -81,8 +92,8 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
     }
 
     return <>
+        <div className="mx-2">
         <Container >
-            
             <CompanyCard
                 className="my-12"
                 company_name={company.company_name}
@@ -97,7 +108,7 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
             </div>
             
             <SearchInput onSearch={handleSearch} />
-            <FiltersSection className="my-12"/>
+            <FiltersSection onUpdateFilters={updateFilters} className="my-12"/>
 
             { jobs &&
                 <div className="flex w-full">
@@ -119,7 +130,7 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
                                 job.employment_name,
                                 job.subcategory_name || job.category_name,
                                 job.experience
-                                    ? `${job.experience.toString()} ${job.experience > 5 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
+                                    ? `${job.experience.toString()} ${job.experience > 4 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
                                     : "Без досвіду",
                             ]} id={job.id} experience={job.experience} category_name={job.category_name} employment_name={""} subcategory_name={""} city_name={""}
                         />
@@ -156,5 +167,6 @@ export default function Jobs({ params: { id } }: { params: { id: string } }) {
             </div>
             }
         </Container>
+        </div>
     </>
 }

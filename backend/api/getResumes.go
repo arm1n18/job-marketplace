@@ -24,7 +24,7 @@ type Resume struct {
 
 	CityName *string `json:"city_name"`
 
-	Experience uint `json:"experience"`
+	Experience float64 `json:"experience"`
 
 	EmploymentName string `json:"employment_name"`
 
@@ -34,7 +34,6 @@ type Resume struct {
 }
 
 func GetResumes(c *gin.Context) {
-
 	search := c.Query("search")
 	category := c.Query("category")
 	subcategory := c.Query("subcategory")
@@ -51,8 +50,8 @@ func GetResumes(c *gin.Context) {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Println("Ошибка подключения к Vercel:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка запроса к базе данных"})
+		log.Println("Помилка підключення до бази даних:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 		return
 	}
 	defer db.Close()
@@ -127,7 +126,7 @@ func GetResumes(c *gin.Context) {
 	rows, err := db.Query(query, queryParams...)
 	if err != nil {
 		log.Printf("Ошибка выполнения запроса: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка запроса к базе данных"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 		return
 	}
 	defer rows.Close()

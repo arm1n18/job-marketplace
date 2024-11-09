@@ -32,7 +32,7 @@ export const JobCard: React.FC<Props> = ({
                 <div className="flex items-center gap-3">
                    { image_url ? (
                         <img className="rounded-full w-6 h-6" src={image_url} alt="" />
-                    ) : (<NoImgAvatars className="rounded-full w-6 h-6 text-[12px]" companyName={company_name} />)}
+                    ) : (<NoImgAvatars className="rounded-full w-6 h-6 text-[12px]" name={company_name} />)}
                     <a className="text-common-sm leading-none hover:underline" href={`/company/${company_name.replace(' ', '-')}`}>{company_name}</a>
                 </div>
 
@@ -51,13 +51,13 @@ export const JobCard: React.FC<Props> = ({
             <div>
                 <span className="text-salary leading-none">
                     {salary_from && `від $${salary_from} `}
-                    {salary_to && `до $${salary_to}`}
+                    {salary_to != 0 && salary_to && `до $${salary_to}`}
                 </span>
             </div>
 
             {keyInfo?.length ? (
                 <>
-                    <div className="border-gray-primary my-3" />
+                    <div className="line-gray my-3" />
                     <div className="flex items-center gap-3 flex-wrap">
                         {keyInfo.map((key, index) => (
                             <span className="key-word-block" key={index}>{key}</span>

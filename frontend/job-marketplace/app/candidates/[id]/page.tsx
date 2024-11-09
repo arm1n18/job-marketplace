@@ -6,6 +6,7 @@ import { ResumeMainCard } from "@/components/shared/Candidate/ResumeMainCard";
 import { ResumeMainCardSkeleton } from "@/components/shared/Skeletons/ResumeMainCardSkeleton";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { ToastContainer } from "react-toastify";
 
 export default function CandidatesDetailPage({ params: { id } }: { params: { id: number } }) {
     const [resume, setResume] = useState<Resume | null>(null);
@@ -41,7 +42,8 @@ export default function CandidatesDetailPage({ params: { id } }: { params: { id:
     }
 
     return (
-        <Container>
+        <div className="mx-2">
+            <Container>
             <ResumeMainCard
                 className="mt-12"
                 title={resume.title}
@@ -62,5 +64,6 @@ export default function CandidatesDetailPage({ params: { id } }: { params: { id:
                 city_name={resume.city_name}
                 isMainPage={true}/>
         </Container>
+        </div>
     );
 }

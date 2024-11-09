@@ -17,18 +17,36 @@ func (User) TableName() string {
 	return "User"
 }
 
+type Tokens struct {
+	ID uint `json:"id" gorm:"unique;primaryKey;autoIncrement"`
+
+	UserID uint `json:"user_id" gorm:"index"`
+	User   User `json:"user" gorm:"foreignKey:UserID"`
+
+	RefreshToken string `json:"token" gorm:"unique"`
+
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+func (Tokens) TableName() string {
+	return "Tokens"
+}
+
 type Company struct {
 	ID uint `json:"id" gorm:"unique;primaryKey;autoIncrement"`
 
-	RecruiterID uint `json:"recruiter_id" gorm:"index"`
-	Recruiter   User `json:"recruiter" gorm:"foreignKey:RecruiterID"`
+	RecruiterName string `json:"recruiter_name"`
+	RecruiterID   uint   `json:"recruiter_id" gorm:"index"`
+	Recruiter     User   `json:"recruiter" gorm:"foreignKey:RecruiterID"`
 
 	CompanyName string `json:"company_name"`
+	PhoneNumber uint   `json:"phone_number"`
 	AboutUs     string `json:"about_us"`
 	ImageUrl    string `json:"image_url" gorm:"unique"`
 
 	WebSite  string `json:"website"`
-	LinkedIn string `json:"linkedin"`
+	Linkedin string `json:"linkedin"`
 	Facebook string `json:"facebook"`
 
 	CreatedAt time.Time
@@ -67,7 +85,7 @@ type Job struct {
 	CityID *uint `json:"city_id" gorm:"index"`
 	City   *City `json:"city" gorm:"foreignKey:CityID"`
 
-	Experience uint `json:"experience"`
+	Experience float64 `json:"experience"`
 
 	EmploymentID uint       `json:"employment_id" gorm:"index"`
 	Employment   Employment `json:"employment" gorm:"foreignKey:EmploymentID"`
@@ -103,7 +121,7 @@ type Resume struct {
 	CityID *uint `json:"city_id" gorm:"index"`
 	City   *City `json:"city" gorm:"foreignKey:CityID"`
 
-	Experience uint `json:"experience"`
+	Experience float64 `json:"experience"`
 
 	EmploymentID uint       `json:"employment_id" gorm:"index"`
 	Employment   Employment `json:"employment" gorm:"foreignKey:EmploymentID"`

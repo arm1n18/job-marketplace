@@ -1,11 +1,14 @@
 'use client';
 
 import { Container } from "@/components/Container";
+import { fetchData } from "@/components/hook/fetchData";
+import { useQueryParams } from "@/components/hook/useQueryParams";
 import { FiltersSection, JobCard, JobMainCard, SearchInput } from "@/components/shared";
+import { filtersList } from "@/components/shared/filtersList";
 import { Job } from "@/components/shared/Job/JobDetailsTypes";
 import { JobCardSkeleton } from "@/components/shared/Skeletons/JobCardSkeleton";
 import { JobMainCardSkeleton } from "@/components/shared/Skeletons/JobMainCardSkeleton";
-import axios from "axios";
+import { FiltersType } from "@/types/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -13,56 +16,46 @@ import { useEffect, useState } from "react";
 export default function Jobs() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-
     const [loading, setLoading] = useState(true);
 
     const router = useRouter();
-
-    const searchParams = useSearchParams()
+    const searchParams = useSearchParams() as URLSearchParams
     const searchFilter = searchParams.get('search')
-    const category = searchParams.get('category')
-    const salary_from = searchParams.get('salary_from')
+
+    const [filters, setFilters] = useState<FiltersType>(filtersList(searchParams));
+
+    const updateFilters = (updatedFilters: Partial<FiltersType>) => {
+        setFilters((filters) => ({
+            ...filters,
+            ...updatedFilters,
+        }));
+    };
+
+    const params = useQueryParams(searchFilter, filters);
 
     useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                const params = new URLSearchParams();
-                if (searchFilter) params.append('search', searchFilter);
-                if (category) params.append('category', category);
-                if (salary_from) params.append('salary_from', salary_from);
-
-                const response = await axios.get(`http://192.168.0.106:8080/jobs?${params.toString()}`);
-                console.log("Fetched jobs:", response.data);
-                setJobs(response.data);
-
-                if(response.data.length > 0) {
-                    setSelectedJob(response.data[0]);
-                }
-            } catch (err) {
-                console.error("Error fetching jobs:", err)
-            } finally {
-                setLoading(false);
-            }
-        };
+        router.push(`?${params.toString()}`);
+        fetchData({url: "jobs", params, setLoading, setData: setJobs, setSelectedData: setSelectedJob});
+    }, [searchFilter, filters]);
     
-        fetchJobs();
-    }, [searchFilter, category]);
-
+    const handleSearch = async (query: string) => {
+        if(query.trim() === "") router.push(`/jobs`);
+        if( query.length < 2) return;
+        router.push(`?search=${query}`);
+    }
+    
     const handleClick = (job: Job) => {
         setSelectedJob(job);
     }
     
-    const handleSearch = async (query: string) => {
-        if(query.trim() === "" || query.length < 2) return;
-        router.push(`/jobs/?search=${query}`);
-    }
     
     return <>
+        <div className="mx-2">
         <Container className="mt-12">
             <SearchInput
                 onSearch={handleSearch}
             />
-            <FiltersSection className="my-12"/>
+            <FiltersSection onUpdateFilters={updateFilters} className="my-12"/>
             <div className="flex w-full">
                 <div className="flex flex-col mr-5">
                     {loading ? (
@@ -70,7 +63,7 @@ export default function Jobs() {
                             <JobCardSkeleton key={index}/>
                         ))
                     ) : (
-                        jobs != null && jobs.map(job => (
+                        jobs != null && jobs.length > 0 && jobs.map(job => (
                                 <JobCard
                                     onClick={() => handleClick(job)}
                                     key={job.id}
@@ -88,7 +81,7 @@ export default function Jobs() {
                                         job.employment_name,
                                         job.subcategory_name || job.category_name,
                                         job.experience
-                                            ? `${job.experience.toString()} ${job.experience > 5 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
+                                            ? `${job.experience.toString()} ${job.experience > 4 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
                                             : "Без досвіду",
                                     ]}experience={job.experience} category_name={job.category_name} employment_name={""} subcategory_name={""} city_name={""}
                                 />
@@ -98,7 +91,7 @@ export default function Jobs() {
                 {loading ? (
                     <JobMainCardSkeleton />
                 ) : (
-                    jobs != null && selectedJob && (
+                    jobs != null && jobs.length > 0 && selectedJob && (
                         <JobMainCard
                             className="h-screen overflow-auto scrollbar top-6"
                             company_name={selectedJob.company_name}
@@ -129,5 +122,10 @@ export default function Jobs() {
                 )}
             </div>
         </Container>
+        </div>
     </>;
+}
+
+function fetchInfo(arg0: { url: string; params: URLSearchParams; setLoading: import("react").Dispatch<import("react").SetStateAction<boolean>>; setData: import("react").Dispatch<import("react").SetStateAction<Job[]>>; setSelectedData: import("react").Dispatch<import("react").SetStateAction<Job | null>>; }) {
+    throw new Error("Function not implemented.");
 }

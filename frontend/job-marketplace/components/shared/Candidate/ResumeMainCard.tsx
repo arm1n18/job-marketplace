@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Parameters } from "@/components/ui/parametrs";
 import { SectionDescription } from "@/components/ui/section-description";
 import { ParametersLine } from "@/components/ui/parametrs-line";
+import { ApplyButton } from "@/components/ui/applyButton";
+import { useAuth } from "@/components/hook/isLoggedIn";
 
 interface Props extends Resume{
     keywords?: KeywordsType[];
@@ -26,13 +28,7 @@ export const ResumeMainCard: React.FC<Props> = ({
     achievements,
     keywords,
     className }) => {
-        // const parameters = [
-        //     { id: 1, name: "Місто", description: city_name || "Україна" },
-        //     { id: 2, name: "Досвід", description: experience ? `${experience} ${experience > 5 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду` : "Без досвіду" },
-        //     { id: 3, name: "Зайнятість", description: employment_name },
-        //     { id: 4, name: "Напрямок", description: subcategory_name || category_name },
-        // ];
-
+        const { isLoggedIn, role } = useAuth();
     return (
         <>  
             <div className={cn("flex-grow bg-gray-selected rounded-lg sticky p-8", className)}>
@@ -53,16 +49,16 @@ export const ResumeMainCard: React.FC<Props> = ({
                     </>
                 ) : null}
                     
-                <div className="border-gray-primary my-6" />
+                <div className="line-gray my-6" />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <ParametersLine IconName="PcCase" name="Напрямок:" description={`${subcategory_name || category_name}`}/>
                     <ParametersLine IconName="MapPin" name="Місто:" description={`${city_name || "Україна"}`}/>
-                    <ParametersLine IconName="CalendarFold" name="Досвід:" description = {experience ? `${experience} ${experience > 5 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду` : "Без досвіду" }/>
+                    <ParametersLine IconName="CalendarFold" name="Досвід:" description = {experience ? `${experience} ${experience > 4 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду` : "Без досвіду" }/>
                     <ParametersLine IconName="BriefcaseBusiness" name="Зайнятість:" description={`${employment_name}`}/>
                 </div>
 
-                <div className="border-gray-primary my-6" />
+                <div className="line-gray my-6" />
 
                 <div>
                     <SectionDescription className="mb-6" title={"Досвід роботи"} description={work_experience} />
@@ -73,7 +69,8 @@ export const ResumeMainCard: React.FC<Props> = ({
                 </div>
                 
                 <div className="w-full align-end">
-                    <Button className="w-full">Запропонувати вакансію</Button>
+                    <ApplyButton className="w-full" title="Запропонувати вакансію"
+                        isLoggedIn={isLoggedIn} role={role} roleAccess={"RECRUITER"} />
                 </div>
             </div>
         </>

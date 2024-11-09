@@ -25,7 +25,7 @@ export const CompanyCard: React.FC<Props> = ({
                     {
                         image_url ? (
                             <img className="rounded-[8px] w-16 h-16" src={image_url} alt="" />
-                        ) : (<NoImgAvatars className="rounded-[8px] w-16 h-16 text-2xl" companyName={company_name} />)
+                        ) : (<NoImgAvatars className="rounded-[8px] w-16 h-16 text-2xl" name={company_name} />)
                     }
                     <div className="flex flex-col gap-3">
                         <h2 className="text-title-bg leading-none">{company_name}</h2>
@@ -38,11 +38,11 @@ export const CompanyCard: React.FC<Props> = ({
                 <div className="flex gap-3">
                     {
                         linkedin &&
-                        <a href={linkedin} target="_blank"><img className="w-8 h-8" src="/images/linkedin.png" alt="" /></a>
+                        <a href={linkedin} target="_blank"><img className="w-8 h-8" src="/images/icons/linkedin.png" alt="" /></a>
                     }
                     {
                         facebook && 
-                        <a href={facebook} target="_blank"><img className="w-8 h-8" src="/images/facebook.png" alt="" /></a>
+                        <a href={facebook} target="_blank"><img className="w-8 h-8" src="/images/icons/facebook.png" alt="" /></a>
                     }
                 </div>
             </header>

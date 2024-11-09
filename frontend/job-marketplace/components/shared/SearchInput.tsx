@@ -40,7 +40,7 @@ export const SearchInput: React.FC<Props> = ({ className, onSearch, value }) => 
                     value={searchQuery}
                     onKeyDown={onEnterClick}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={"Наприклад: Front-end engineer"}
+                    placeholder={"Наприклад: Front-End engineer"}
                     className="bg-[#F9FAFB] pr-10"
                 />
 

@@ -1,3 +1,5 @@
+'use client'
+
 import { cn } from "@/lib/utils";
 import { KeyWord } from "../../ui/key-word";
 import { User } from "lucide-react";
@@ -6,6 +8,10 @@ import { Job } from "./JobDetailsTypes";
 import { SectionDescription } from "@/components/ui/section-description";
 import { ParametersLine } from "@/components/ui/parametrs-line";
 import { NoImgAvatars } from "@/components/ui/noImgAvatars";
+import { useAuth } from "@/components/hook/isLoggedIn";
+import { ApplyButton } from "@/components/ui/applyButton";
+import { Bounce, toast, ToastContainer } from "react-toastify";
+
 
 interface Props extends Job{
     keyInfo?: string[];
@@ -30,17 +36,9 @@ export const JobMainCard: React.FC<Props> = ({
     salary_to,
     created_at,
     className }) => {
-        
-        // const parameters = [
-        //     { id: 1, name: "Виключно", description: experience ? `від ${experience} ${experience > 1 ? "років" : "року"} досвіду` : "Без досвіду" },
-        //     { id: 2, name: "Зайнятість", description: employment_name },
-        //     { id: 3, name: "Кандидат з", description: city_name || "Україна" },
-        //     { id: 4, name: "Офіс", description: city_name || "Ні" },
-        //     { id: 5, name: "Напрямок", description: subcategory_name || category_name },
-        //     { id: 6, name: "Домен", description: "Marketplace" },
-        // ];
-
+        const { isLoggedIn, role } = useAuth();
         const safeCompanyName = company_name || 'default-company';
+        
     return (
 
         <>  
@@ -50,7 +48,7 @@ export const JobMainCard: React.FC<Props> = ({
                             {
                                 image_url ? (
                                     <img className="rounded-[8px] w-16 h-16" src={image_url} alt="" />
-                                ) : (<NoImgAvatars className="rounded-[8px] w-16 h-16 text-2xl" companyName={company_name} />)
+                                ) : (<NoImgAvatars className="rounded-[8px] w-16 h-16 text-2xl" name={company_name} />)
                             }
                             <div className="flex flex-col gap-3">
                                 <h2 className="text-title-bg leading-none">{title}</h2>
@@ -60,19 +58,18 @@ export const JobMainCard: React.FC<Props> = ({
                                 </a>
                             </div>
                         </div>
-                        <Button>Відгукнутись</Button>
+                        <ApplyButton isLoggedIn={isLoggedIn} role={role} roleAccess={"CANDIDATE"} title={"Відгукнутись"} />
                 </header>
 
                 <div className="my-6">
                     <span className="text-salary-bg leading-none">
-                        {salary_from && `від $${salary_from} `}
-                        {salary_to && `до $${salary_to}`}
+                        {salary_from && salary_from != 0 && `від $${salary_from} `}
+                        {salary_to != 0 && salary_to &&`до $${salary_to}`}
                     </span>
                 </div>
-
                 {keywords?.length ? (
                     <>
-                        <div className="border-gray-primary my-6" />
+                        {/* <div className="line-gray my-6" /> */}
                         <div className="flex items-center gap-3 flex-wrap">
                             {keywords.map((keyword) => (
                                 <KeyWord className="key-word-block-bg" key={keyword.id} keyword={keyword.name} />
@@ -81,18 +78,18 @@ export const JobMainCard: React.FC<Props> = ({
                     </>
                 ) : null}
 
-                <div className="border-gray-primary my-6" />
+                <div className="line-gray my-6" />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <ParametersLine IconName="PcCase" name="Напрямок:" description={`${subcategory_name || category_name}`}/>
-                    <ParametersLine IconName="MapPin" name="Кандидат з:" description={`${city_name || "Україна"}`}/>
-                    <ParametersLine IconName="CalendarFold" name="Виключно:" description={experience ? `від ${experience} ${experience > 1 ? "років" : "року"} досвіду` : "Без досвіду" }/>
-                    <ParametersLine IconName="Building" name="Офіс:" description={`${city_name || "Ні"}`}/>
                     <ParametersLine IconName="BriefcaseBusiness" name="Зайнятість:" description={`${employment_name}`}/>
+                    <ParametersLine IconName="CalendarFold" name="Досвід:" description={experience ? `від ${experience} ${experience > 1 ? "років" : "року"}` : "Без досвіду" }/>
+                    <ParametersLine IconName="Building" name="Офіс:" description={`${city_name || "Ні"}`}/>
+                    <ParametersLine IconName="MapPin" name="Кандидат з:" description={`${city_name || "Україна"}`}/>
                     <ParametersLine IconName="CalendarClock" name="Опубліковано:" description={created_at && new Date(created_at).toLocaleDateString("uk-UA", {day: "numeric", month: "long"})}/>
                 </div>
 
-                <div className="border-gray-primary my-6" />
+                <div className="line-gray my-6" />
 
                 <div>
                     <SectionDescription className="mb-6" title={"Про нас"} description={about_us} />

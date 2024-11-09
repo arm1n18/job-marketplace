@@ -1,66 +1,190 @@
 import { cn } from "@/lib/utils";
 import { Filter } from "../ui/filter";
-import { Slider } from "@/components/ui/slider"
-import { useState } from "react";
+import { Slider } from "@/components/ui/slider";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Check, X } from "lucide-react";
+import { FiltersType } from "@/types/types";
+import { useSearchParams } from "next/navigation";
+import { categories, cities, experience } from "../consts/filters-consts";
 
 interface Props {
-    className ?: string;
+    onUpdateFilters: (filters: FiltersType) => void;
+    setSelectedFormat?: (name: string | '') => void;
+    className?: string;
 }
 
-export const FiltersSection: React.FC<Props> = ({ className, }) => {
+export const FiltersSection: React.FC<Props> = ({ className, onUpdateFilters }) => {
     const [reset, setReset] = useState<boolean>(false);
+    const [minValue, setMinValue] = useState([0]);
+    const [filters, setFilters] = useState<FiltersType>({ category: '', subcategory: '', experience: '', city: '', employment: '', salary_from: ''});
+    const searchParams = useSearchParams();
 
-    // Подправить в будущем (Zustand, Redux)
-    let filters = {
-        category: '',
-        experience: '',
-        city: '',
-        employment: '',
+    const experienceParam = searchParams.get('experience');
+    const yearsFormat = experienceParam != null && experienceParam !== "" ?
+        (Number(experienceParam) == 0 ? 'Без досвіду' : (experienceParam + (Number(experienceParam) > 4 ? " років" : (Number(experienceParam) > 1 ? " роки" : " рік"))))
+        : null
+        
+    useEffect(() => {
+        setFilters((prevFilters) => ({
+            ...prevFilters,
+            category: searchParams.get('category') ?? '',
+            subcategory: searchParams.get('subcategory') ?? '',
+            experience: searchParams.get('experience') ?? '',
+            city: searchParams.get('city') ?? '',
+            employment: searchParams.get('employment') ?? '',
+            salary_from: searchParams.get('salary_from') ?? ''
+        }));
+    }, [searchParams]);
+        
+
+    // const handleSelect = useCallback((item: string | null, title: string) => {
+    //     setFilters((prevFilters) => {
+    //         const updatedFilters = { ...prevFilters };
+    
+    //         switch (title) {
+    //             case 'Категорії':
+    //                 updatedFilters.category = item ? item;
+    //                 break;
+    //             case 'Досвід':
+    //                 updatedFilters.experience = item ? (item === 'Без досвіду' ? ['0'] : [item.replace(/\D+/g, '')]) : [];
+    //                 break;
+    //             case 'Місто':
+    //                 updatedFilters.city = item ? [item] : [];
+    //                 break;
+    //             case 'Зайнятість':
+    //                 updatedFilters.employment = item ? [item] : [];
+    //                 break;
+    //             default:
+    //                 console.log(filters);
+    //                 break;
+    //         }
+    
+    //         return updatedFilters;
+    //     });
+    // }, [filters]);
+    
+    // useEffect(() => {
+    //     onUpdateFilters(filters);
+    // }, [filters])
+
+    const updateFilter = (filterName: string, value: string) => {
+        setFilters((prevFilters) => {
+           const updatedFilters = {
+            ...prevFilters,
+            [filterName]: value, 
+        };
+        onUpdateFilters(updatedFilters);
+        return updatedFilters
+        }) ;
     };
 
-    const handleSelect = (item: string | null, title: string) => {
-        title == 'Категорії' && item !== null && (filters.category = item);
-        title == 'Досвід' && item !== null && (filters.experience = item);
-        title == 'Місто' && item !== null && (filters.city = item);
-        title == 'Зайнятість' && item !== null && (filters.employment = item);
-        // console.log(filters);
-    };
-
-    const handleReset = () => {
+    const handleReset = useCallback(() => {
+        const resetFilters = {
+            category: '',
+            subcategory: '',
+            experience: '',
+            city: '',
+            employment: '',
+            salary_from: '',
+        };
+        
         setMinValue([0]);
-        const categories = ['Категорії', 'Досвід', 'Місто', 'Зайнятість'];
-        categories.forEach((category) => handleSelect(null, category));
+        setFilters(resetFilters);
+        onUpdateFilters(resetFilters);
+        
         setReset(true);
         setTimeout(() => {
             setReset(false);
         }, 100);
+    }, [onUpdateFilters]);
+
+    const handleSalarySubmit = (value: number) => {
+        setFilters({ ...filters, "salary_from": value.toString()});
     };
 
-    const [minValue, setMinValue] = useState([0]);
+    const handleGroupClick = (group: string, subgroup: string) => {
+        setFilters({ ...filters, "category": group, "subcategory": subgroup});
+    };
+
+    const handleExperience = (experience: string) => {
+        setFilters({ ...filters, "experience": experience ? (experience === 'Без досвіду' ? '0' : experience.replace(/\D+/g, '')) : ''});
+    };
+
+    const handleCityClick = (city: string) => {
+        setFilters({ ...filters, "city": city});
+    };
+
+    const handleEmploymentClick = (employment: string) => {
+        setFilters({ ...filters, "employment": employment});
+    };
+
+    const handleApplyFilters = () => {
+        // onUpdateFilters({ ...filters, salary_from: minValue[0] === 0 ? null : [minValue[0].toString()]});
+        onUpdateFilters({ ...filters});
+    };
     
+
     return (
         <div className={cn("flex justify-between", className)}>
-                <div className="flex items-center gap-6">
-                    <Filter
-                        onReset={reset ?? false}
-                        onSelect={(item, title) =>handleSelect(item, title)}
-                        title={"Категорії"}
-                        filters={['JavaScrcipt / Front-End', 'Fullstack', 'Flutter', 'Java', 'C / C++ / Embedded']}
-                        minWidth="min-w-48"/>
-                    <Filter onReset={reset ?? false} onSelect={(item, title) =>handleSelect(item, title)} title={"Досвід"} filters={['Без досвіду', '1 рік', '2 роки', '3 роки', '4 роки', '5 років', '6 років', '7 років', '8 років', '9 років', '10 + років']} minWidth="min-w-32"/>
-                    <Filter onReset={reset ?? false} onSelect={(item, title) =>handleSelect(item, title)} title={"Місто"} filters={['Вся Україна', 'Одеса', 'Київ', 'Львів', 'Харків', 'Дніпро', 'Вінниця', 'Житомир']} minWidth="min-w-32"/>
-                    <Filter onReset={reset ?? false} onSelect={(item, title) =>handleSelect(item, title)} title={"Зайнятість"} filters={['Віддалена робота', 'Part-time', 'Офіс']} minWidth="min-w-40"/>
-                    <div className="h-[37px] flex flex-col justify-between">
-                        <p className="filters-text">Зарплата від: ${minValue}</p>
-                        <Slider value={minValue} max={10000} step={500} className={"max-w-60 min-w-60"} onValueChange={(minValue)=> {setMinValue(minValue)}}/>
+            <div className="flex items-center gap-6">
+                <Filter
+                    defaultValue={searchParams.get('category')}
+                    onReset={reset}
+                    setSelectedGroup={handleGroupClick}
+                    title={"Категорії"}
+                    categories = {categories}
+                    minWidth="min-w-48"
+                />
+                <Filter
+                    defaultValue={yearsFormat}
+                    onReset={reset}
+                    setSelectedGroup={handleExperience}
+                    title={"Досвід"}
+                    categories = {experience}
+                    minWidth="min-w-32"
+                />
+                <Filter
+                    defaultValue={searchParams.get('city')}
+                    onReset={reset}
+                    setSelectedGroup={handleCityClick}
+                    title={"Місто"}
+                    categories = {cities}
+                    minWidth="min-w-32"
+                />
+                <Filter
+                    defaultValue={searchParams.get('employment')}
+                    onReset={reset}
+                    setSelectedGroup={handleEmploymentClick}
+                    title={"Зайнятість"}
+                    categories = {[
+                        {name: 'Віддалена робота', subgroups: []},
+                        {name: 'Part-time', subgroups: []},
+                        {name: 'Офіс', subgroups: []},
+                    ]}
+                    minWidth="min-w-40"
+                />
+                <div>
+                <div className="h-[37px] flex flex-col justify-between">
+                        <p className="filters-text">Зарплата від: ${Number(filters.salary_from) || minValue[0]}</p>
+                        <Slider
+                            value={[Number(filters.salary_from) || minValue[0]]}
+                            max={10000}
+                            step={500}
+                            className={"max-w-40 min-w-40"}
+                            onValueChange={(minValue) => {setMinValue(minValue), handleSalarySubmit(minValue[0])}}
+                        />
                     </div>
                 </div>
-                <div className="flex gap-3">
-                    <Button className="w-fit" variant="outline" onClick={handleReset}><X className="w-4 h-4"/></Button>
-                    <Button className="w-fit"><Check className="w-4 h-4" /></Button>
-                </div>
+            </div>
+            <div className="flex gap-3">
+                <Button className="w-fit" variant="outline" onClick={handleReset}>
+                        <X className="w-4 h-4" />
+                </Button>
+                <Button className="w-fit" variant="default" onClick={handleApplyFilters}>
+                        <Check  className="w-4 h-4" />
+                </Button>
+            </div>
         </div>
-    )
-}
+    );
+};

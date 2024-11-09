@@ -40,7 +40,8 @@ export default function JobsDetailPage({ params: { id } }: { params: { id: numbe
     }
 
     return (
-        <Container>
+        <div className="mx-2">
+            <Container>
             <JobMainCard
                 className="mt-12"
                 company_name={job.company_name}
@@ -50,6 +51,7 @@ export default function JobsDetailPage({ params: { id } }: { params: { id: numbe
                 about_us={job.about_us}
                 description={job.description}
                 requirements={job.requirements}
+                created_at={job.created_at}
                 offer={job.offer}
                 salary_from={job.salary_from}
                 salary_to={job.salary_to}
@@ -81,5 +83,6 @@ export default function JobsDetailPage({ params: { id } }: { params: { id: numbe
                 city_name={""}
             />
         </Container>
+        </div>
     );
 }

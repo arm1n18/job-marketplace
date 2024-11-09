@@ -20,8 +20,8 @@ func GetResume(c *gin.Context) {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Println("Ошибка подключения к Vercel:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка запроса к базе данных"})
+		log.Println("Помилка підключення до бази даних:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 		return
 	}
 	defer db.Close()
@@ -56,7 +56,7 @@ func GetResume(c *gin.Context) {
 			return
 		}
 		log.Printf("Ошибка выполнения запроса: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка запроса к базе данных"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 		return
 	}
 
