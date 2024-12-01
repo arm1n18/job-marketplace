@@ -9,23 +9,44 @@ import (
 )
 
 func InitRouter(r *gin.Engine, db *sql.DB) {
-	r.GET("/jobs", services.AuthMiddleware(db), api.GetJobs)
-	r.GET("/jobs/:id", services.AuthMiddleware(db), api.GetJob)
-	r.POST("/jobs/create", services.AuthMiddleware(db), api.CreateJob)
+	jobsGroup := r.Group("/jobs", services.AuthMiddleware(db))
+	{
+		jobsGroup.GET("/", func(c *gin.Context) { api.GetJobs(c, db) })
+		jobsGroup.GET("/:id", func(c *gin.Context) { api.GetJob(c, db) })
+		jobsGroup.POST("/", services.RecruiterMiddleware(), api.CreateJob)
+	}
 
-	r.GET("/candidates", services.AuthMiddleware(db), api.GetResumes)
-	r.GET("/candidates/:id", services.AuthMiddleware(db), api.GetResume)
-	r.POST("/candidates/create", services.AuthMiddleware(db), services.CheckExistResume(db), api.CreateResume)
+	candidatesGroup := r.Group("/candidates", services.AuthMiddleware(db))
+	{
+		candidatesGroup.GET("/", func(c *gin.Context) { api.GetResumes(c, db) })
+		candidatesGroup.GET("/:id", api.GetResume)
+		candidatesGroup.POST("/", services.CheckExistResume(db), api.CreateResume)
+	}
 
-	r.GET("/company/:name", services.AuthMiddleware(db), api.GetCompany)
-	r.POST("/company/create", services.AuthMiddleware(db), services.CheckExistCompany(db), api.CreateCompany)
+	companyGroup := r.Group("/company", services.AuthMiddleware(db))
+	{
+		companyGroup.GET("/:name", func(c *gin.Context) { api.GetCompany(c, db) })
+		companyGroup.GET("/jobs", func(c *gin.Context) { api.GetCompanyJobs(c, db) })
+		companyGroup.POST("/", services.RecruiterMiddleware(), services.CheckExistCompany(db), api.CreateCompany)
+	}
 
-	// r.POST("/upload/photo", services.AuthMiddleware(db), api.UploadPhoto)
+	authGroup := r.Group("/auth")
+	{
+		authGroup.POST("/register", api.Register)
+		authGroup.POST("/login", api.Login)
+		authGroup.POST("/logout", api.LogOut)
+		authGroup.GET("/refresh-token", api.Refresh)
+	}
 
-	r.POST("/auth/register", api.Register)
-	r.POST("/auth/login", api.Login)
-	r.POST("/auth/logout", api.LogOut)
-	r.GET("/auth/refresh-token", api.Refresh)
+	r.POST("/response", services.AuthMiddleware(db), func(c *gin.Context) { api.Response(c, db) })
 
-	r.GET("/profile/avatar", services.AuthMiddleware(db), api.GetAvatar)
+	inboxGroup := r.Group("/inbox", services.AuthMiddleware(db))
+	{
+		inboxGroup.GET("/", func(c *gin.Context) { api.GetInbox(c, db) })
+	}
+
+	r.GET("/user/avatar", services.AuthMiddleware(db), api.GetAvatar)
+	r.GET("/user/profile", services.AuthMiddleware(db), func(c *gin.Context) {
+		api.GetUserProfile(c, db)
+	})
 }

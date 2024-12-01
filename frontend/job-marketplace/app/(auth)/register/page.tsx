@@ -1,23 +1,23 @@
 'use client';
 
 import { Container } from "@/components/Container";
+import { useAuth } from "@/components/hook/AuthContext";
 import { validationFormAuth } from "@/components/shared/validation-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RoleButton } from "@/components/ui/role-button";
+import AuthService from "@/services/AuthService";
 import { Roles } from "@/types/types";
-import axios from "axios";
 import { CircleAlert } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";
-import { toast } from "react-toastify";
 
 export default function Register() {
     const [selectedRole, setSelectedRole] = React.useState<Roles | null>(null);
     const [formData, setFormData] = useState<{email: string, password: string}>({ email: '', password: '' });
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [serverError, setServerError] = useState("");
-
+    const { setLoggedIn, setRole, setId, setEmail } = useAuth();
     const router = useRouter();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,22 +52,13 @@ export default function Register() {
             ...formData,
             role: selectedRole,
         };
-        
-        try {
-            const response = await axios.post(`http://192.168.0.106:8080/auth/register`, dataToSend, {
-                withCredentials: true,
-            });
-            if (response.status === 200) {
-                localStorage.setItem('access_token', response.data.token);
-                console.log("Token from localStorage:", response.data.token);
-                if(selectedRole === 'CANDIDATE') {
-                    router.push('/candidates/create');
-                } else if (selectedRole === 'RECRUITER') {
-                    router.push('/company/create');
-                }
-            }
-        }catch (err) {
-            toast.warn((err as Error).toString());
+
+        const registerUser = new AuthService({ data: dataToSend, router}, { setLoggedIn: setLoggedIn, setRole, setId, setEmail });
+        const response = await registerUser.registerUser();
+
+        if (response && response.error) {
+            setErrors({});
+            setServerError(response.error);
         }
     }
     
@@ -75,15 +66,15 @@ export default function Register() {
         <Container className="flex items-center flex-col">
             <h1 className="text-title-dark my-12">Зареєструватись на сайті</h1>
 
-            <div className="w-fit flex items-center flex-col">
-                <div className="w-fit bg-non-selected rounded-lg flex mb-12">
+            <div className="w-fit flex items-center flex-col px-4">
+                <div className="max-w-96 bg-non-selected rounded-lg flex mb-12">
                     <RoleButton role={"Кандидат"} isSelected={selectedRole === 'CANDIDATE'} onClick={() => handleClick('CANDIDATE')} />
                     <div className="absolute h-24 w-[1px] bg-[#D0D5DD] left-1/2 transform -translate-x-1/2"/>
                     <RoleButton role={"Рекрутер"} isSelected={selectedRole === 'RECRUITER'} onClick={() => handleClick('RECRUITER')} />
                 </div>
-                <form className="w-full flex flex-col items-center" onSubmit={handleSubmit}>
+                <form className="w-full flex flex-col items-center " onSubmit={handleSubmit}>
                     <div className="w-full">
-                        <Input className={errors.email || serverError ? "w-full border-red-500" : "w-full mb-6 bg-[#F9FAFB]"}
+                        <Input className={errors.email || serverError ? " border-red-500" : "mb-6 bg-[#F9FAFB]"}
                             placeholder="Email"
                             name="email"
                             value={formData.email || ''}
@@ -92,7 +83,8 @@ export default function Register() {
                         {serverError && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{serverError}</p>}
                         {errors.email && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.email}</p>}
                         <Input
-                            className={errors.password ? "w-full border-red-500" : "w-full mb-6 bg-[#F9FAFB]"}
+                            className={errors.password ? " border-red-500" : "mb-6 bg-[#F9FAFB]"}
+                            type="password"
                             placeholder="Пароль" 
                             name="password"
                             value={formData.password || ''} 

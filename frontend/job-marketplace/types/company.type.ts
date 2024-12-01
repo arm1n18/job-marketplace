@@ -7,4 +7,4 @@ export interface Company {
     website: string;
     linkedin: string;
     facebook: string;
-  }
+}

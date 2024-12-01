@@ -1,13 +1,13 @@
+import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
-import { Cookie } from "next/font/google";
-import { cookies } from "next/headers";
+import { Skeleton } from './skeleton';
 
 interface Props {
-    name : string;
-    className ?: string;
+    className?: string;
+    name: string;
 }
 
-export const NoImgAvatars: React.FC<Props> = ({name, className }) => {
+export const NoImgAvatars: React.FC<Props> = ({ name, className }) => {
     const colors = [
         "redAvatar",
         "orangeAvatar",
@@ -16,25 +16,32 @@ export const NoImgAvatars: React.FC<Props> = ({name, className }) => {
         "greenAvatar",
         "purpleAvatar"
     ];
-    const token = localStorage.getItem('access_token');
 
-    // const getLetterFromEmail = 
+    const [isLoading, setIsLoading] = useState(true);
 
-    const generateAvatarColor = (str : string) => {
+    useEffect(() => {
+        if (name) {
+            setIsLoading(false);
+        }
+    }, [name]);
+
+    if (isLoading || !name) {
+        return <Skeleton className={cn("", className)} />;
+    }
+
+    const generateAvatarColor = (str: string) => {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             hash = (hash << 5) - hash + str.charCodeAt(i);
         }
         return colors[Math.abs(hash) % colors.length];
-    }
+    };
 
     const hash = generateAvatarColor(name);
 
     return (
-        <>  
-            <div className={cn("flex items-center justify-center", hash, className)}>
-                <p className="font-bold line-clamp-none">{name[0].toUpperCase()}</p>
-            </div>
-        </>
-    )
-}
+        <div className={cn("text-xs flex items-center justify-center", hash, className)}>
+            <p className="font-bold line-clamp-none">{name[0].toUpperCase()}</p>
+        </div>
+    );
+};

@@ -70,6 +70,7 @@ func AuthMiddleware(db *sql.DB) gin.HandlerFunc {
 		}
 
 		c.Set("userID", userID)
+		c.Set("userRole", userRole)
 		c.Next()
 	}
 

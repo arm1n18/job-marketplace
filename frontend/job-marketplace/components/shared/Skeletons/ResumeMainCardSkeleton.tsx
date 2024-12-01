@@ -9,11 +9,11 @@ interface Props{
 export const ResumeMainCardSkeleton: React.FC<Props> = ({ isMainPage, className }) => {
     return (
         <>  
-            <div className={cn("flex-grow bg-gray-selected rounded-lg sticky p-8", className)}>
+            <div className={cn("flex-grow md:bg-[#F7F7F8] md:border md:border-[#D0D5DD] rounded-lg sticky max-sm:p-4 p-8", className)}>
                 <header className="w-full flex justify-between items-center">
                         <div className="w-full flex justify-between">
                         <Skeleton className="h-6 w-60" />
-                        <Skeleton className={`${isMainPage ? 'h-6 w-40' : 'h-6 w-28'}`} />
+                        {/* <Skeleton className={`${isMainPage ? 'h-6 w-40' : 'h-6 w-28'}`} /> */}
                         </div>
                 </header>
 

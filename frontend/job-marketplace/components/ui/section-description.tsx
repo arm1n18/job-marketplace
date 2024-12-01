@@ -14,8 +14,8 @@ export const SectionDescription: React.FC<Props> = ({
     return (
         <>  
             <div className={cn("", className)}>
-                <p className="mb-6 text-common-dark">{title}</p>
-                <div className="text-common text-justify">{description}</div>
+                <p className="text-common-dark">{title}</p>
+                <div className="text-common text-justify my-4 break-words whitespace-normal">{description}</div>
             </div>
         </>
     );

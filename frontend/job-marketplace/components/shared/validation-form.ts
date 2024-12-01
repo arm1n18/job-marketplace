@@ -9,7 +9,7 @@ export const validationFormAuth = z.object({
 export const validationCreateResume = z.object({
     title: z.string().min(5, { message: "Назва позиції занадто коротка" }).max(55, { message: "Максимальна довжина назви 55 символів" }),
     salary: z.number().min(100, { message: "Зарплата має бути більшою за $100" }),
-    work_experience: z.string().min(400, { message: "Опис досвід роботи має складати мінімум 400 символів" }).max(2000, { message: "Максимальна довжина досвіду роботи 2000 символів" }),
+    work_experience: z.string().min(200, { message: "Опис досвід роботи має складати мінімум 200 символів" }).max(2000, { message: "Максимальна довжина досвіду роботи 2000 символів" }),
     achievements: z.string().max(2000, { message: "Максимальна довжина опису доягеннь 2000 символів" }),
 })
 

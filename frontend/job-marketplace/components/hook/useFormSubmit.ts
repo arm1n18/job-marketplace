@@ -1,4 +1,4 @@
-import { sendForm } from "./sendForm";
+import FormService from "@/services/FormService";
 import { useRouter } from "next/navigation";
 
 interface FormSubmitProps {
@@ -13,6 +13,7 @@ interface FormSubmitProps {
     message: string;
 }
 
+/* Validate the Submition Data Before Sending */
 export const useFormSubmit = async (props: FormSubmitProps) : Promise<void> => {
     const { e, url, dataToSend, router, validationZod, setErrors, message, redirectURL } = props;
     // e.preventDefault();
@@ -29,7 +30,15 @@ export const useFormSubmit = async (props: FormSubmitProps) : Promise<void> => {
         return;
     }
     try {
-        sendForm({url: url, data: dataToSend, setLoading: () => {}, router, message, redirectURL: redirectURL});
+        const formService = new FormService({
+            url: url,
+            data: dataToSend,
+            setLoading: () => {},
+            router: router,
+            message: message,
+            redirectURL: redirectURL,
+        })
+        await formService.submitForm();
 
     } catch (err) {
         console.error("Помилка при створенні:", err);

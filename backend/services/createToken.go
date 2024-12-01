@@ -21,8 +21,13 @@ func CreateToken(userId int, userEmail string, userRole database.Role, createRef
 		"id":    userId,
 		"email": userEmail,
 		"role":  userRole,
-		"exp":   time.Now().Add(time.Minute * 30).Unix(),
-		"iat":   time.Now().Unix(),
+		// "userName":           userName,
+		// "avatarURL":          avatarURL,
+		// "companyName":        companyName,
+		// "phone":              phone,
+		// "isAllowedToPublish": isAllowedToPublish,
+		"exp": time.Now().Add(time.Minute * 30).Unix(),
+		"iat": time.Now().Unix(),
 	})
 
 	accessTokenString, err := accessToken.SignedString([]byte(secretKey))

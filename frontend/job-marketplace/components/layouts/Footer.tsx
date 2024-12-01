@@ -10,9 +10,9 @@ interface Props {
 
 export const Footer: React.FC<Props> = ({ className }) => {
     return (
-        <footer className={cn('border-primary border-gray-primary-t bg-white mt-48 mx-2 py-10', className)}>
+        <footer className={cn('border-primary border-gray-primary-t mt-auto bg-white w-full py-8', className)}>
             <Container className="flex items-center h-full">
-                        <div className="flex w-full justify-between">
+                        <div className="flex max-sm:flex-col max-sm:gap-2 w-full justify-between mx-4">
                             <div className="flex flex-col">
                                 <a href="/"><img src="/images/logo/joobly-logo-blue.svg" alt="joobly-logo" className="h-8" draggable="false"/></a>
                                 <div className="flex-grow"></div>
@@ -21,17 +21,15 @@ export const Footer: React.FC<Props> = ({ className }) => {
                             <div className="flex flex-col">
                                 <p className="text-common-dark mb-2">Кандидатові</p>
                                 <ul>
-                                    <li><Link className="text-common hover:underline" href="/jobs">Вакансії</Link></li>
-                                    <li><Link className="text-common hover:underline" href="/jobs">Створити резюме</Link></li>
-                                    <li><Link className="text-common hover:underline" href="/jobs">Як скласти резюме</Link></li>
+                                    <li><Link className="text-common hover:underline" href="/jobs">Знайти вакансію</Link></li>
+                                    <li><Link className="text-common hover:underline" href="/candidates/create">Створити резюме</Link></li>
                                 </ul>
                             </div>
                             <div className="flex flex-col">
                                 <p className="text-common-dark mb-2">Роботодавцю</p>
                                 <ul>
-                                    <li><Link className="text-common hover:underline" href="/candidates">Створити вакансію</Link></li>
-                                    <li><Link className="text-common  hover:underline" href="/candidates">Знайти резюме</Link></li>
-                                    <li><Link className="text-common  hover:underline" href="/candidates">Як створити вакансію</Link></li>
+                                    <li><Link className="text-common hover:underline" href="/jobs/create">Створити вакансію</Link></li>
+                                    <li><Link className="text-common  hover:underline" href="/candidates">Знайти кандидата</Link></li>
                                 </ul>
                             </div>
                             {/* <div className="flex flex-col">

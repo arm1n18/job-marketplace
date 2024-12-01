@@ -9,18 +9,18 @@ interface Props{
 export const CompanyCardSkeleton: React.FC<Props> = ({ className }) => {
         
     return (
-        <div className={cn("rounded-lg p-16 bg-gray-selected w-full", className)}>
-            <header className="w-full flex justify-between items-center">
-                <div className="flex items-center gap-6 justify-between">
+        <div className={cn("rounded-lg p-8 bg-gray-selected w-full", className)}>
+            <header className="w-full flex max-sm:flex-col justify-between sm:items-center">
+                <div className="flex items-center gap-6 sm:justify-between">
                     <Skeleton className="h-16 w-16 rounded-[8px]" />
                     <div className="flex flex-col gap-3">
                         <Skeleton className="h-6 w-40" />
                         <Skeleton className="h-4 w-28" />
                     </div>
                 </div>
-                <div className="flex gap-3">
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
+                <div className="flex gap-3 max-sm:mt-6">
+                    <div className="flex gap-2"><Skeleton className="h-7 w-7"/><Skeleton className="h-6 w-16 my-auto"/></div>
+                    <div className="flex gap-2"><Skeleton className="h-7 w-7"/><Skeleton className="h-6 w-20 my-auto"/></div>
                 </div>
             </header>
 

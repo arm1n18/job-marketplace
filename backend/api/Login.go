@@ -38,13 +38,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	log.Print(user)
+	// log.Print(user)
 
 	// hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 
 	userID, userRole, err := services.IsUserExists(db, user.Email, user.Password)
 	if err != nil || userID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Не коректна пошта або пароль"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Некоректна пошта або пароль"})
 		return
 	}
 

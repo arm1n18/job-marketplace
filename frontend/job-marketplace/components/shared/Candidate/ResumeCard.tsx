@@ -3,31 +3,22 @@ import { Resume } from "./ResumeDetailsTypes";
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { KeywordsType } from "@/types/types";
+import Link from "next/link";
 
-
-
-interface Props extends Resume{
+interface Props{
+    data: Resume;
     keywords: KeywordsType[];
     onClick?: () => void;
     className ?: string;
 }
 
 export const ResumeCard: React.FC<Props> = ({
-    id,
-    title,
-    work_experience,
-    salary,
-    city_name,
-    experience,
-    category_name,
-    subcategory_name,
+    data,
     keywords,
-    achievements,
     onClick,
     className }) => {
 
         const [isExpanded, setIsExpanded] = useState(false);
-        
         const handleExpand = (event: React.MouseEvent) => {
             event.stopPropagation();
             setIsExpanded(!isExpanded);
@@ -35,32 +26,32 @@ export const ResumeCard: React.FC<Props> = ({
         
     return (
         <div 
-            className={cn("w-[438px] rounded-lg p-5 bg-gray-selected", className)} 
+            className={cn("rounded-lg p-4 bg-gray-selected", className)} 
             onClick={onClick}
             style={{ cursor: 'pointer' }}
         >
             <div className="w-full flex items-center justify-between mb-3">
-                <h2 className="text-title leading-none w-fit max-w-72"><a href={`/candidates/${id}`}>{title}</a></h2>
+                <h2 className="text-title leading-none w-fit max-w-72"><Link href={`/candidates/${data.id}`} className="visited:text-[#4B1484]">{data.title}</Link></h2>
                 <span className="text-salary leading-none ml-2">
-                    {salary && `від $${salary} `}
+                    {data.salary && `від $${data.salary} `}
                 </span>
             </div>
             <p className="text-common-sm leading-none mb-3">Україна 
-                {city_name && ` • ${city_name}`} • {experience} {experience > 4 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду
-                • {subcategory_name || category_name}
+                {data.city_name && ` • ${data.city_name}`} • {data.experience} {data.experience > 4 ? "років" : (data.experience > 1 ? "роки" : "рік")} досвіду
+                • {data.subcategory_name || data.category_name}
                 </p>
 
             
                 <div className={`${isExpanded == true ? "" : " max-h-36 overflow-hidden"} mb-3`}>
                 <p className="text-common-sm text-justify leading-[16px]">
-                    {work_experience}
+                    {data.work_experience}
                 </p>
                 {/* <p className="text-common-sm text-justify leading-[16px]">
                     {achievements}
                 </p> */}
             </div>
             {
-                work_experience?.length > 1023 ? 
+                data.work_experience?.length > 1023 ? 
                     <span className="text text-common-sm-blue" onClick={handleExpand}>{isExpanded ?
                         <span className="flex items-center">Приховати <ChevronUp className="size-4 ml-1 mt-[2px]" /></span>
                         : <span className="flex items-center">Детальніше <ChevronDown className="size-4 ml-1 mt-[2px]" /></span>

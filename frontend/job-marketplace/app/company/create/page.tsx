@@ -1,14 +1,13 @@
 "use client";
 
 import { Container } from "@/components/Container";
-import { useAuth } from "@/components/hook/isLoggedIn";
+import { useAuth } from "@/components/hook/AuthContext";
 import { sendForm } from "@/components/hook/sendForm";
 import { validationCreateCompany } from "@/components/shared/validation-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Asterisk, CircleAlert } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZodIssue } from "zod";
@@ -69,14 +68,14 @@ export default function CreateJob() {
     };
 
     return (
-        <div className="mx-2">
+        <div className="mx-4 mb-24">
             <Container className="mt-12">
                 <h1 className="text-title-dark my-12">Оформелення профілю</h1>
                 <div className="line-gray mb-12" />
-                <form className="w-fit" onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-2 mb-12">
-                        <span className="text-common-dark">Ім’я та прізвище рекрутера</span>
-                        <div className="w-[464px]">
+                <form className="lg:w-fit" onSubmit={handleSubmit}>
+                    <div className="grid mb-12 lg:grid-cols-2">
+                        <legend className="text-common-dark max-lg:mb-2">Ім’я та прізвище рекрутера</legend>
+                        <div className="lg:w-[464px]">
                             <Input className={`w-full ${errors.recruiter_name && "border-red-500"} bg-[#F9FAFB]`}
                                 placeholder="Микола Шевченко"
                                 onChange={(e) => handleTextSubmit(e.target.value, "recruiter_name")}
@@ -84,9 +83,9 @@ export default function CreateJob() {
                             {errors.recruiter_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.recruiter_name}</p>}
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 mb-12">
-                        <span className="text-common-dark">Назва команії</span>
-                        <div className="w-[464px]">
+                    <div className="grid mb-12 lg:grid-cols-2">
+                        <legend className="text-common-dark max-lg:mb-2">Назва команії</legend>
+                        <div className="lg:w-[464px]">
                             <Input className={`w-full ${errors.company_name && "border-red-500"} bg-[#F9FAFB]`}
                                 placeholder="Наприклад: joobly.ua"
                                 onChange={(e) => handleTextSubmit(e.target.value, "company_name")}
@@ -94,9 +93,9 @@ export default function CreateJob() {
                             {errors.company_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.company_name}</p>}
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 mb-12">
-                        <span className="text-common-dark">Телефон</span>
-                        <div className="w-[464px]">
+                    <div className="grid mb-12 lg:grid-cols-2">
+                        <legend className="text-common-dark max-lg:mb-2">Телефон</legend>
+                        <div className="lg:w-[464px]">
                             <Input className={`w-full ${errors.phone && "border-red-500"} bg-[#F9FAFB]`}
                                 placeholder="+38 000 000 0000"
                                 onChange={(e) => handleTextSubmit(e.target.value, "phone")}
@@ -104,24 +103,24 @@ export default function CreateJob() {
                             {errors.phone && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.phone}</p>}
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 mb-12">
+                    <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex gap-1">
-                            <span className="text-common-dark">Аватар</span>
-                            <Asterisk color="#1C64EE" size={14}/>
+                            <legend className="text-common-dark max-lg:mb-2">Аватар</legend>
+                            <Asterisk color="#1C64EE" size={12} />
                         </div>
-                        <div className="w-[464px] gap-5 flex">
+                        <div className="lg:w-[464px] gap-5 flex">
                             <Input className="w-full bg-[#F9FAFB] text-[#D0D5DD]"  type="file" 
                                 placeholder="https://ua.linkedin.com/" // проверить
                                 onChange={handleFileChange}
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 mb-12">
+                    <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex gap-1">
-                            <span className="text-common-dark">Сайт компанії</span>
-                            <Asterisk color="#1C64EE" size={14}/>
+                            <legend className="text-common-dark max-lg:mb-2">Сайт компанії</legend>
+                            <Asterisk color="#1C64EE" size={12}/>
                         </div>
-                        <div className="w-[464px]">
+                        <div className="lg:w-[464px]">
                             <Input className={`w-full ${errors.web_site && formData.web_site != "" && "border-red-500"} bg-[#F9FAFB]`}
                                 placeholder="Наприклад: https://www.joobly.ua/"
                                 onChange={(e) => handleTextSubmit(e.target.value, "web_site")}
@@ -129,24 +128,25 @@ export default function CreateJob() {
                             {errors.web_site && formData.web_site != "" && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.web_site}</p>}
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 mb-12">
+                    <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex gap-1">
-                            <span className="text-common-dark">LinkedIn</span>
-                            <Asterisk color="#1C64EE" size={14}/>
+                            <legend className="text-common-dark max-lg:mb-2">LinkedIn</legend>
+                            <Asterisk color="#1C64EE" size={12}/>
                         </div>
-                        <div className="w-[464px]">
+                        <div className="lg:w-[464px]">
                             <Input className={`w-full ${errors.linkedin && formData.linkedin != "" &&  "border-red-500"} bg-[#F9FAFB]`}
                                 placeholder="https://ua.linkedin.com/"
                                 onChange={(e) => handleTextSubmit(e.target.value, "linkedin")}
                             />
                             {errors.linkedin && formData.linkedin != "" && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.linkedin}</p>}
                         </div>
-                    </div><div className="grid grid-cols-2 mb-24">
+                    </div>
+                    <div className="grid mb-12 lg:mb-24 lg:grid-cols-2">
                         <div className="flex gap-1">
-                            <span className="text-common-dark">Facebook</span>
-                            <Asterisk color="#1C64EE" size={14}/>
+                            <legend className="text-common-dark max-lg:mb-2">Facebook</legend>
+                            <Asterisk color="#1C64EE" size={12}/>
                         </div>
-                        <div className="w-[464px]">
+                        <div className="lg:w-[464px]">
                             <Input className={`w-full ${errors.facebook && formData.facebook != "" && "border-red-500"} bg-[#F9FAFB]`}
                                 placeholder="https://www.facebook.com/"
                                 onChange={(e) => handleTextSubmit(e.target.value, "facebook")}
@@ -155,9 +155,12 @@ export default function CreateJob() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 mb-12">
-                        <span className="text-common-dark max-w-32">Про компанію</span>
-                        <div className="w-[464px]">
+                    <div className="grid mb-12 lg:grid-cols-2">
+                        <div className="flex flex-col lg:max-w-56">
+                            <legend className="text-common-dark max-lg:mb-2">Про компанію</legend>
+                            <p className="text-common-light mb-2">Опишіть сферу діяльності вашої компанії, ваші цінності, особливості і т.д.</p>
+                        </div>
+                        <div className="lg:w-[464px]">
                             <Textarea className={`${errors.about_us && "border-red-500"} bg-[#F9FAFB]`} placeholder="Про компанію"
                             onChange={(e) => handleTextSubmit(e.target.value, "about_us")}
                             />
@@ -166,14 +169,13 @@ export default function CreateJob() {
                         </div>
                     </div>
                     
-                    <div className="w-full">
-                        <div className="flex justify-end gap-6 mr-9">
-                            <Button asChild
-                                    variant="outline">
-                                    <Link href="/login">Скасувати публікацію</Link>
-                            </Button>
-                            <Button onClick={() => handleSubmit}>Завершити публікацію</Button>
-                        </div>
+                    <div className="flex lg:justify-end gap-4">
+                        <Button variant="outline" onClick={() => router.back()}>
+                                Скасувати
+                        </Button>
+                        <Button className="max-md:w-48" onClick={() => handleSubmit}>
+                            Створити компанію
+                        </Button>
                     </div>
                 </form>
             </Container>

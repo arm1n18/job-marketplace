@@ -7,18 +7,17 @@ interface Props {
 
 export const JobMainCardSkeleton: React.FC<Props> = ({ className }) => {
     return (
-        
         <>  
-            <div className={cn("flex-grow bg-gray-selected rounded-lg sticky p-8", className)}>
+            <div className={cn("flex-grow hidden md:block md:bg-[#F7F7F8] md:border md:border-[#D0D5DD] rounded-lg sticky max-sm:p-4 p-8", className)}>
                 <header className="w-full flex justify-between items-center">
                         <div className="flex items-center gap-6 justify-between">
-                            <Skeleton className="h-16 w-16 rounded-[8px]" />
+                            <Skeleton className="h-16 w-16 rounded-xl" />
                             <div className="flex flex-col gap-3">
                                 <Skeleton className="h-6 w-40" />
                                 <Skeleton className="h-4 w-28" />
                             </div>
                         </div>
-                        <Skeleton className="h-10 w-32" />
+                        {/* <Skeleton className="h-10 w-32" /> */}
                 </header>
 
                 <div className="my-6">

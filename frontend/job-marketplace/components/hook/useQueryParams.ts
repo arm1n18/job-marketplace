@@ -1,10 +1,10 @@
-import { FiltersType } from "@/types/types";
+import { FiltersType } from "@/types";
 import { useMemo } from "react"
 
 export const useQueryParams = (searchFilter: string | null, filters: FiltersType) => {
     return useMemo(() => {
         const params = new URLSearchParams();
-        if (searchFilter) params.append('search', searchFilter);
+        if(searchFilter) params.append('search', searchFilter);
         if(filters.category) params.append('category', filters.category);
         if(filters.subcategory) params.append('subcategory', filters.subcategory);
         if(filters.experience) params.append('experience', filters.experience);

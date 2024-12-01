@@ -9,8 +9,8 @@ interface Props {
 
 export const CheckBox: React.FC<Props> = ({className, setSelectedFormat, name, checked}) => {
     return(
-        <div className={cn(className, "flex gap-2 items-center")}>
-            <input type="checkbox" className="size-4" onChange={() => setSelectedFormat(name!)} checked={checked}/>
+        <div className={cn(className, "flex gap-2 items-center custom-radio")} onClick={() => setSelectedFormat(name!)}>
+            <input type="radio" className="size-5" onChange={() => setSelectedFormat(name!)} checked={checked}/>
             <p className="text-common-dark">{name}</p>
         </div>
     )     

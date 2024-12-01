@@ -1,15 +1,21 @@
 'use client';
 
 import { Container } from "@/components/Container";
-import { fetchData } from "@/components/hook/fetchData";
 import { useQueryParams } from "@/components/hook/useQueryParams";
-import { FiltersSection, JobCard, JobMainCard, SearchInput } from "@/components/shared";
+import { useWindowWidth } from "@/components/hook/useWindowWidth";
+import { SearchInput } from "@/components/shared";
 import { filtersList } from "@/components/shared/filtersList";
-import { Job } from "@/components/shared/Job/JobDetailsTypes";
+import { FiltersSection } from "@/components/shared/FiltersSection";
+import { JobCard, JobMainCard } from "@/components/shared/Job";
+import { MobileFiltersSection } from "@/components/shared/MobileComponents/MobileFiltersSection";
+import { NothingFound } from "@/components/shared/nothingFound";
 import { JobCardSkeleton } from "@/components/shared/Skeletons/JobCardSkeleton";
 import { JobMainCardSkeleton } from "@/components/shared/Skeletons/JobMainCardSkeleton";
-import { FiltersType } from "@/types/types";
+import FetchDataService from "@/services/FetchDataService";
+import { FiltersType } from "@/types/filters.type";
+import { Job } from "@/types/job.type";
 import { useRouter, useSearchParams } from "next/navigation";
+import React from "react";
 import { useEffect, useState } from "react";
 
 
@@ -17,12 +23,12 @@ export default function Jobs() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [loading, setLoading] = useState(true);
-
     const router = useRouter();
     const searchParams = useSearchParams() as URLSearchParams
     const searchFilter = searchParams.get('search')
-
     const [filters, setFilters] = useState<FiltersType>(filtersList(searchParams));
+    const screenWidth = useWindowWidth();
+
 
     const updateFilters = (updatedFilters: Partial<FiltersType>) => {
         setFilters((filters) => ({
@@ -35,7 +41,8 @@ export default function Jobs() {
 
     useEffect(() => {
         router.push(`?${params.toString()}`);
-        fetchData({url: "jobs", params, setLoading, setData: setJobs, setSelectedData: setSelectedJob});
+        const getJobs = new FetchDataService({url: "jobs/", params, setLoading, setData: setJobs, setSelectedData: setSelectedJob});
+        getJobs.getData();
     }, [searchFilter, filters]);
     
     const handleSearch = async (query: string) => {
@@ -44,79 +51,77 @@ export default function Jobs() {
         router.push(`?search=${query}`);
     }
     
-    const handleClick = (job: Job) => {
-        setSelectedJob(job);
-    }
+    const handleResponse = (jobID: number, status: string) => {
+        setJobs((prevJobs) =>{
+            const updatedJobs = prevJobs.map((prevJob) => {
+                if (prevJob.id === jobID) {
+                    const updatedJob = { ...prevJob, status: { ...prevJob.status, String: status } };
+                    if(selectedJob?.id === jobID) setSelectedJob(updatedJob);
+                    return updatedJob;
+                }
+                return prevJob;
+            })
+            
+            return updatedJobs;
+        });
+    };
     
-    
+
     return <>
-        <div className="mx-2">
-        <Container className="mt-12">
+        <div className="mx-4 mb-24">
+        
+        <Container className="mt-12 relative">
             <SearchInput
                 onSearch={handleSearch}
             />
             <FiltersSection onUpdateFilters={updateFilters} className="my-12"/>
-            <div className="flex w-full">
-                <div className="flex flex-col mr-5">
+            {!loading && jobs.length === 0 && 
+                <NothingFound type={"notFound"} />
+            }
+            <div className="md:grid grid-cols-[32%,auto] w-full max-md:mt-12">
+                <div className="flex flex-col md:mr-5">
                     {loading ? (
-                         Array.from({ length: 5 }).map((_, index) => (
-                            <JobCardSkeleton key={index}/>
+                         Array.from({ length: 7 }).map((_, index) => (
+                            <JobCardSkeleton key={index} className={`${index != 6 ? 'mb-5' : ''}`}/>
                         ))
                     ) : (
-                        jobs != null && jobs.length > 0 && jobs.map(job => (
+                        jobs != null && jobs.length > 0 && jobs.map((job, index: number) => (
+
                                 <JobCard
-                                    onClick={() => handleClick(job)}
+                                    className={`${index != jobs.length - 1 ? 'mb-3' : ''} ${selectedJob === job && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                                     key={job.id}
-                                    id={job.id}
-                                    className={`mb-3 ${selectedJob === job ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
-                                    image_url={job.image_url}
-                                    company_name={job.company_name}
-                                    title={job.title}
-                                    description={job.description}
-                                    salary_from={job.salary_from}
-                                    salary_to={job.salary_to}
-                                    created_at = {job.created_at}
+                                    onClick={() => {screenWidth > 768 ? setSelectedJob(job) : router.push(`/jobs/${job.id}`)}}
+                                    data={job}
                                     keyInfo={[
                                         job.city_name || "Україна",
-                                        job.employment_name,
-                                        job.subcategory_name || job.category_name,
+                                        job.employment_name ?? "",
                                         job.experience
                                             ? `${job.experience.toString()} ${job.experience > 4 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
                                             : "Без досвіду",
-                                    ]}experience={job.experience} category_name={job.category_name} employment_name={""} subcategory_name={""} city_name={""}
-                                />
+                                        job.subcategory_name ?? job.category_name ?? "",
+                                    ]}/>
+      
                             ))
                     )}
+                   <MobileFiltersSection onUpdateFilters={updateFilters}/>
                 </div>
                 {loading ? (
                     <JobMainCardSkeleton />
                 ) : (
                     jobs != null && jobs.length > 0 && selectedJob && (
                         <JobMainCard
-                            className="h-screen overflow-auto scrollbar top-6"
-                            company_name={selectedJob.company_name}
-                            title={selectedJob.title}
-                            image_url={selectedJob.image_url}
-                            description={selectedJob.description}
-                            requirements={selectedJob.requirements}
-                            offer={selectedJob.offer}
-                            salary_from={selectedJob.salary_from}
-                            salary_to={selectedJob.salary_to}
-                            keywords={[{ id: 1, name: 'Embedded' },
+                            className="h-screen overflow-auto scrollbar top-6 hidden md:block"
+                            data={selectedJob}
+                            onApplyClick={handleResponse}
+                            jobStatus={selectedJob.status.String}
+                            keywords={[
+                            { id: 1, name: 'Embedded' },
                             { id: 2, name: 'Linux' },
                             { id: 3, name: 'LinuxPostgreSQL' },
                             { id: 4, name: 'Windows Server' },
                             { id: 5, name: 'Python' },
                             { id: 6, name: 'Golang' },
                             ]}
-                            about_us={selectedJob.about_us}
-                            website={selectedJob.website}
-                            experience={selectedJob.experience}
-                            category_name={selectedJob.category_name}
-                            employment_name={selectedJob.employment_name}
-                            subcategory_name={selectedJob.subcategory_name}
-                            city_name={selectedJob.city_name}
-                            created_at={selectedJob.created_at}
                         />
                     )
                 )}
@@ -124,8 +129,4 @@ export default function Jobs() {
         </Container>
         </div>
     </>;
-}
-
-function fetchInfo(arg0: { url: string; params: URLSearchParams; setLoading: import("react").Dispatch<import("react").SetStateAction<boolean>>; setData: import("react").Dispatch<import("react").SetStateAction<Job[]>>; setSelectedData: import("react").Dispatch<import("react").SetStateAction<Job | null>>; }) {
-    throw new Error("Function not implemented.");
 }

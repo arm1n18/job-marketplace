@@ -20,7 +20,7 @@ export const IsNew: React.FC<Props> = ({ created_at }) => {
                     </div>
                 </div>
                 : <div className="flex gap-1 text-common-sm">
-                    <CalendarClock className="size-4 icon-gray -translate-y-0.2" strokeWidth={2} />
+                    <CalendarClock className="size-4 -translate-y-0.2" strokeWidth={2} />
                     {dateText}
                 </div>
             

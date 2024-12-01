@@ -1,15 +1,14 @@
 import { cn } from "@/lib/utils";
-import { Company } from "./CompanyTypes";
 import { ExternalLink } from "lucide-react";
 import { SectionDescription } from "@/components/ui/section-description";
 import { NoImgAvatars } from "@/components/ui/noImgAvatars";
+import { Company } from "@/types/company.type";
 
 interface Props extends Company{
     className ?: string;
 }
 
 export const CompanyCard: React.FC<Props> = ({
-    id,
     company_name,
     about_us,
     image_url,
@@ -19,9 +18,9 @@ export const CompanyCard: React.FC<Props> = ({
     className }) => {
         
     return (
-        <div className={cn("rounded-lg p-16 bg-gray-selected w-full", className)}>
-            <header className="w-full flex justify-between items-center">
-                <div className="flex items-center gap-6 justify-between">
+        <div className={cn("rounded-lg p-8 bg-gray-selected w-full", className)}>
+            <header className="w-full flex max-sm:flex-col justify-between sm:items-center">
+                <div className="flex items-center gap-6 sm:justify-between">
                     {
                         image_url ? (
                             <img className="rounded-[8px] w-16 h-16" src={image_url} alt="" />
@@ -35,14 +34,14 @@ export const CompanyCard: React.FC<Props> = ({
                         </a>
                     </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 max-sm:mt-6">
                     {
                         linkedin &&
-                        <a href={linkedin} target="_blank"><img className="w-8 h-8" src="/images/icons/linkedin.png" alt="" /></a>
+                        <a href={linkedin} target="_blank" className="flex gap-2"><img className="w-8 h-8" src="/images/icons/linkedin.png" alt="" /><span className="my-auto text-common-blue">LinkedIn</span></a>
                     }
                     {
                         facebook && 
-                        <a href={facebook} target="_blank"><img className="w-8 h-8" src="/images/icons/facebook.png" alt="" /></a>
+                        <a href={facebook} target="_blank" className="flex gap-2"><img className="w-8 h-8" src="/images/icons/facebook.png" alt="" /><span className="my-auto text-common-blue">Facebook</span></a>
                     }
                 </div>
             </header>

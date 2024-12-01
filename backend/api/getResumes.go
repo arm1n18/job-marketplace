@@ -1,7 +1,6 @@
 package api
 
 import (
-	"backend/config"
 	"database/sql"
 	"log"
 	"net/http"
@@ -13,7 +12,7 @@ import (
 )
 
 type Resume struct {
-	ID             uint    `json:"id"`
+	ID             *uint   `json:"id"`
 	CreatorID      uint    `json:"creator_id"`
 	Title          string  `json:"title"`
 	WorkExperience string  `json:"work_experience"`
@@ -28,12 +27,13 @@ type Resume struct {
 
 	EmploymentName string `json:"employment_name"`
 
-	Salary    *uint     `json:"salary"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Salary    *uint          `json:"salary"`
+	CreatedAt *time.Time     `json:"created_at"`
+	UpdatedAt *time.Time     `json:"updated_at"`
+	Status    sql.NullString `json:"status"`
 }
 
-func GetResumes(c *gin.Context) {
+func GetResumes(c *gin.Context, db *sql.DB) {
 	search := c.Query("search")
 	category := c.Query("category")
 	subcategory := c.Query("subcategory")
@@ -41,38 +41,33 @@ func GetResumes(c *gin.Context) {
 	employment := c.Query("employment")
 	city := c.Query("city")
 	salary := c.Query("salary")
-
+	userID, _ := c.Get("userID")
 	var resumes []Resume
-
-	cfg := config.LoadDataBaseConfig()
-
-	dsn := "host=" + cfg.Host + " user=" + cfg.User + " password=" + cfg.Password + " dbname=" + cfg.DBName + " sslmode=require"
-
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		log.Println("Помилка підключення до бази даних:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
-	}
-	defer db.Close()
 
 	query := (`
 	SELECT r.ID, r.creator_id, r.Title, r.work_experience AS WorkExperience, r.Achievements,
-	       c.Name AS CategoryName,
-	       s.Name AS SubcategoryName,
-	       ct.Name AS CityName,
-	       r.Experience, e.Name AS EmploymentName,
-	       r.salary, r.created_at, r.updated_at
+	c.Name AS CategoryName,
+	s.Name AS SubcategoryName,
+	ct.Name AS CityName,
+	r.Experience, e.Name AS EmploymentName,
+	r.salary, r.created_at, r.updated_at,
+			COALESCE(
+				ra.status,
+				ja.status
+			) AS status
 	FROM "Resume" r
 	LEFT JOIN "Category" c ON r.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON r.subcategory_id = s.ID
 	LEFT JOIN "City" ct ON r.city_id = ct.ID
 	LEFT JOIN "Employment" e ON r.employment_id = e.ID
 	LEFT JOIN "User" u ON r.creator_id = u.ID
+	LEFT JOIN "JobApplication" ja ON ja.candidate_id = r.creator_id AND ja.recruiter_id = $1
+	LEFT JOIN "ResumeApplication" ra ON ra.resume_id = r.ID AND ra.recruiter_id = u.ID
 	WHERE TRUE
 	`)
 
 	var queryParams []interface{}
+	queryParams = append(queryParams, userID)
 
 	argID := 1
 
@@ -135,7 +130,7 @@ func GetResumes(c *gin.Context) {
 		resume := Resume{}
 		err := rows.Scan(&resume.ID, &resume.CreatorID, &resume.Title, &resume.WorkExperience,
 			&resume.Achievements, &resume.CategoryName, &resume.SubcategoryName, &resume.CityName,
-			&resume.Experience, &resume.EmploymentName, &resume.Salary, &resume.CreatedAt, &resume.UpdatedAt)
+			&resume.Experience, &resume.EmploymentName, &resume.Salary, &resume.CreatedAt, &resume.UpdatedAt, &resume.Status)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, resume)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})

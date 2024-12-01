@@ -28,11 +28,12 @@ func GetAvatar(c *gin.Context) {
 	defer db.Close()
 
 	var imageURL string
-	err = db.QueryRow(`SELECT "image_url" FROM "Company" WHERE "recruiter_id" = $1`, userID).Scan(&imageURL)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve image URL"})
-		return
-	}
+	_ = db.QueryRow(`SELECT "image_url" FROM "Company" WHERE "recruiter_id" = $1`, userID).Scan(&imageURL)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve image URL"})
+	// 	c.Status(http.StatusInternalServerError)
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, gin.H{"image_url": imageURL})
 }

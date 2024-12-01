@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import { FiltersTypeTwo } from "@/types/types";
-import { on } from "events";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { FiltersTypeTwo } from "@/types/filters.type";
+import { Check, ChevronUp } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useOpenedRef } from "../hook/useOpenedRef";
 
 interface Props {
     title : string;
@@ -11,35 +11,39 @@ interface Props {
     className?: string;
     onReset: boolean;
     defaultValue?: string | null
-    onSelect?: (selectedItem: string | null, title: string) => void;
+    defaultSubValue?: string | null
     setSelectedGroup: (group: string | '', subgroup: string | '') => void;
 }
 
-export const Filter: React.FC<Props> = ({ title, categories, minWidth, className, setSelectedGroup, onReset, defaultValue }) => {
-    const chosenFilter = categories?.find((category) => 
+export const Filter: React.FC<Props> = ({ title, categories, minWidth, className, setSelectedGroup, onReset, defaultValue, defaultSubValue }) => {
+    const chosenGroup = categories?.find((category) => 
         category.name === defaultValue && category.name!.length === defaultValue!.length
-    );
-    const chosenGroup = chosenFilter?.name ?? 
-    categories?.find((category) => category.name?.includes(defaultValue!))?.name ?? '';
+    )?.name ?? '';
 
-    const chosenSubGroup = categories?.find((category) => category.subgroups?.includes(defaultValue!)) ? defaultValue ?? '' : '';
+    const chosenSubGroup = categories?.find((category) => category.subgroups?.includes(defaultSubValue!)) ? defaultSubValue ?? '' : '';
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [selected, setSelected] = useState<{ group: string; subgroup: string }>({ group: chosenGroup, subgroup: chosenSubGroup });
+    const [selected, setSelected] = useState<{ group: string; subgroup: string }>({group: chosenGroup, subgroup: chosenSubGroup});
     const [subMenu, setSubMenu] = useState<string | null>(null);
     const openedRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if(isOpen && openedRef.current && !openedRef.current.contains(e.target as HTMLElement)) {
-                setIsOpen(false)
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside)
-    }, [isOpen])
+        const chosenGroup = categories?.find((category) => 
+            category.name === defaultValue && category.name!.length === defaultValue!.length
+        )?.name ?? '';
 
-    const handleGroupClick = (group: string, subgroup: string) => {
-        setSelectedGroup(group, subgroup);
+        const chosenSubGroup = categories?.find((category) => category.subgroups?.includes(defaultSubValue!)) ? defaultSubValue ?? '' : '';
+        
+        setSelected({
+            group: chosenGroup,
+            subgroup: chosenSubGroup,
+        });
+    }, [defaultValue, categories]);
+
+    useOpenedRef({isOpen: isOpen, setIsOpen: setIsOpen, openedRef});
+
+    const handleGroupClick = (group: string, subgroup: string,) => {
+        setSelectedGroup?.(group, subgroup);
         setSelected({ group, subgroup });
     };
 
@@ -53,19 +57,16 @@ export const Filter: React.FC<Props> = ({ title, categories, minWidth, className
     return (
         <div className={cn("relative", className)} ref={openedRef}>
             <div
-                className={`${selected.group ? `filters-block-selected` : `filters-block`} flex gap-2`}
+                className={`${selected.group ? `filters-block-selected` : `filters-block`} ${isOpen ? `filters-block-selected` : ''} flex gap-2`}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 {title}
-                { isOpen ? 
-                    (<ChevronUp className="size-4 ml-1 mt-1" />)
-                    : (<ChevronDown className="size-4 ml-1 mt-1" />)
-                }
+                <ChevronUp strokeWidth={1.5} size={24} className={`${!isOpen ? 'rotate-180' : ''}`}/>
             </div>
             {isOpen && (
                 <ul className="filters-list">
                     {categories!=null && Array.isArray(categories) && categories.map((category, index) => (
-                        <li key={index} className={`${selected.group != '' && selected.group === category.name ? `filter-item-selected` : `filter-item`} flex justify-between items-center ${minWidth}`}
+                        <li key={index} className={`${selected.group != '' && selected.group === category.name ? `filter-item-selected` : `filter-item`} flex justify-between items-center mb-1 ${minWidth}`}
                             onClick={() => {
                                 const newChosenGroup = selected.group === category.name ? '' : category.name  
                                 if(newChosenGroup === '') {
@@ -86,7 +87,7 @@ export const Filter: React.FC<Props> = ({ title, categories, minWidth, className
                             {subMenu == category.name && category.subgroups && category.subgroups.length > 0 && (
                                 <ul className="subfilters-list">
                                     {category.subgroups.map((subFilter: string, index: number) => (
-                                        <li className={`${selected.subgroup != '' && selected.subgroup === subFilter ? `filter-item-selected` : `filter-item`} flex justify-between items-center`} key={index}
+                                        <li className={`${selected.subgroup != '' && selected.subgroup === subFilter ? `filter-item-selected` : `filter-item`} flex justify-between items-center mb-1`} key={index}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 const newChosenSubGroup = selected.subgroup === subFilter ? '' : subFilter  ;

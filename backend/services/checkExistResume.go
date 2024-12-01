@@ -2,7 +2,6 @@ package services
 
 import (
 	"database/sql"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +16,7 @@ func CheckExistResume(db *sql.DB) gin.HandlerFunc {
 		var exists bool
 
 		userID, _ := c.Get("userID")
-		log.Print(userID)
+		// log.Print(userID)
 
 		query := `SELECT EXISTS(SELECT 1 FROM "Resume" WHERE "creator_id" = $1)`
 		err := db.QueryRow(query, userID).Scan(&exists)

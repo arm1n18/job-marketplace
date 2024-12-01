@@ -2,74 +2,120 @@
 
 import { cn } from "@/lib/utils";
 import { KeyWord } from "../../ui/key-word";
-import { User } from "lucide-react";
-import { Button } from "../../ui/button";
-import { Job } from "./JobDetailsTypes";
+import { Check, User, X } from "lucide-react";
 import { SectionDescription } from "@/components/ui/section-description";
 import { ParametersLine } from "@/components/ui/parametrs-line";
 import { NoImgAvatars } from "@/components/ui/noImgAvatars";
-import { useAuth } from "@/components/hook/isLoggedIn";
 import { ApplyButton } from "@/components/ui/applyButton";
-import { Bounce, toast, ToastContainer } from "react-toastify";
+import { useAuth } from "@/components/hook/AuthContext";
+import { KeywordsType, ResponseDataType } from "@/types";
+import Link from "next/link";
+import ApplyService from "@/services/ApplyService";
+import { Job } from "@/types/job.type";
+import { useState } from "react";
+import { useWindowWidth } from "@/components/hook/useWindowWidth";
+import { ResponseButtonsSection } from "@/components/ui/responseButtonsSection";
+import { Method } from "@/types/response.type";
 
 
-interface Props extends Job{
+interface Props{
+    data: Job;
+    keywords: KeywordsType[];
     keyInfo?: string[];
+    onApplyClick: (jobID: number, status: string) => void;
+    jobStatus: string;
     className ?: string;
 }
 
-export const JobMainCard: React.FC<Props> = ({
-    image_url,
-    company_name,
-    title,
-    description,
-    requirements,
-    about_us,
-    offer,
-    keywords,
-    experience,
-    employment_name,
-    category_name,
-    subcategory_name,
-    city_name,
-    salary_from,
-    salary_to,
-    created_at,
-    className }) => {
-        const { isLoggedIn, role } = useAuth();
-        const safeCompanyName = company_name || 'default-company';
-        
+const methods: { [key: string]: string } = {
+    "APPLICATION_PENDING": "applyForJob",
+    "SUCCEEDED": "acceptJob",
+    "REJECTED": "rejectJob",
+}
+
+
+export const JobMainCard: React.FC<Props> = ({ data, keywords, className, jobStatus, onApplyClick }) => {
+    const { role, id, loggedIn } = useAuth();
+    const [ loading, setLoading ] = useState(false);
+    const screenWidth = useWindowWidth();
+
+    const handleResponseClick = async (status: string) => {
+        const selectedMethod = methods[status] as Method;
+
+        const applyData: ResponseDataType = {
+            method: selectedMethod,
+            applyingForID: data.id!,
+            recruiterID: data.creator_id!,
+            candidateID: id!,
+        }
+    
+        const applyJobs = new ApplyService({role: role, data: applyData, jobID: data.id});
+        setLoading(true);
+        try {
+            const response = await applyJobs.respond();
+            if (response.success) {
+                onApplyClick(data.id!, status);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        setLoading(false);
+    }
+
     return (
 
         <>  
-            <div className={cn("flex-grow bg-gray-selected rounded-lg sticky p-8", className)}> {/* было p-16 */}
+            <div className={cn("flex-grow md:border md:border-[#D0D5DD] rounded-lg sticky max-md:p-4 p-8", className)}>
                 <header className="w-full flex justify-between items-center">
-                        <div className="flex items-center gap-6 justify-between">
-                            {
-                                image_url ? (
-                                    <img className="rounded-[8px] w-16 h-16" src={image_url} alt="" />
-                                ) : (<NoImgAvatars className="rounded-[8px] w-16 h-16 text-2xl" name={company_name} />)
-                            }
-                            <div className="flex flex-col gap-3">
-                                <h2 className="text-title-bg leading-none">{title}</h2>
-                                <a className="text-common-sm hover:underline leading-none flex gap-1 w-fit" href={`/company/${safeCompanyName.replace(' ', '-')}`} target="_blank">
-                                    {company_name}
+                        <div className="flex md:items-center gap-6 max-md:flex-col">
+                            <div className="max-md:flex max-md:items-center max-md:gap-4">
+                                <Link href={`/company/${data.company_name!.replace(' ', '-')}`}>
+                                    {
+                                        data.image_url ? (
+                                            <img className="rounded-xl size-12 md:size-16 object-cover " loading="lazy" src={data.image_url} alt={`${data.company_name} logo`} />
+                                        ) : (<NoImgAvatars className="rounded-xl size-12 md:size-16 text-2xl" name={data.company_name!} />)
+                                    }
+                                </Link>
+                                <Link className="text-title-dark md hover:underline leading-none gap-1 w-fit flex md:hidden" href={`/company/${data.company_name!.replace(' ', '-')}`}>
+                                    {data.company_name}
+                                </Link>
+                            </div>
+                            <div className="flex flex-col justify-center gap-3">
+                                <h2 className="text-title-bg leading-none">{data.title}</h2>
+                                <Link className="text-common-sm hover:underline leading-none gap-1 w-fit hidden md:flex" href={`/company/${data.company_name!.replace(' ', '-')}`}>
+                                    {data.company_name}
                                     <User className="size-3" strokeWidth={3} />
-                                </a>
+                                </Link>
                             </div>
                         </div>
-                        <ApplyButton isLoggedIn={isLoggedIn} role={role} roleAccess={"CANDIDATE"} title={"Відгукнутись"} />
+                        {
+                            jobStatus == "" || jobStatus == "APPLICATION_PENDING" ? (
+                                <ApplyButton
+                                    className="hidden md:block"
+                                    roleAccess={"CANDIDATE"}
+                                    status={jobStatus} 
+                                    loading={loading}
+                                    onClick={() => handleResponseClick("APPLICATION_PENDING")} 
+                                />
+                            ) : (
+                                <ResponseButtonsSection
+                                    className="hidden md:block"
+                                    status={jobStatus}
+                                    loading={loading}    
+                                    onClick={(status) => handleResponseClick(status)}
+                                />
+                            )
+                        }
                 </header>
 
                 <div className="my-6">
                     <span className="text-salary-bg leading-none">
-                        {salary_from && salary_from != 0 && `від $${salary_from} `}
-                        {salary_to != 0 && salary_to &&`до $${salary_to}`}
+                        {data.salary_from && data.salary_from != 0 && `від $${data.salary_from} `}
+                        {data.salary_to != 0 && data.salary_to &&`до $${data.salary_to}`}
                     </span>
                 </div>
                 {keywords?.length ? (
                     <>
-                        {/* <div className="line-gray my-6" /> */}
                         <div className="flex items-center gap-3 flex-wrap">
                             {keywords.map((keyword) => (
                                 <KeyWord className="key-word-block-bg" key={keyword.id} keyword={keyword.name} />
@@ -81,22 +127,22 @@ export const JobMainCard: React.FC<Props> = ({
                 <div className="line-gray my-6" />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <ParametersLine IconName="PcCase" name="Напрямок:" description={`${subcategory_name || category_name}`}/>
-                    <ParametersLine IconName="BriefcaseBusiness" name="Зайнятість:" description={`${employment_name}`}/>
-                    <ParametersLine IconName="CalendarFold" name="Досвід:" description={experience ? `від ${experience} ${experience > 1 ? "років" : "року"}` : "Без досвіду" }/>
-                    <ParametersLine IconName="Building" name="Офіс:" description={`${city_name || "Ні"}`}/>
-                    <ParametersLine IconName="MapPin" name="Кандидат з:" description={`${city_name || "Україна"}`}/>
-                    <ParametersLine IconName="CalendarClock" name="Опубліковано:" description={created_at && new Date(created_at).toLocaleDateString("uk-UA", {day: "numeric", month: "long"})}/>
+                    <ParametersLine IconName="PcCase" name="Напрямок:" description={`${data.subcategory_name || data.category_name}`}/>
+                    <ParametersLine IconName="BriefcaseBusiness" name="Зайнятість:" description={`${data.employment_name}`}/>
+                    <ParametersLine IconName="CalendarFold" name="Досвід:" description={data.experience ? `від ${data.experience} ${data.experience > 1 ? "років" : "року"}` : "Без досвіду" }/>
+                    <ParametersLine IconName="Building" name="Офіс:" description={`${data.city_name || "Ні"}`}/>
+                    <ParametersLine IconName="MapPin" name="Кандидат з:" description={`${data.city_name || "Україна"}`}/>
+                    <ParametersLine IconName="CalendarClock" name="Опубліковано:" description={data.created_at && new Date(data.created_at).toLocaleDateString("uk-UA", {day: "numeric", month: "long"})}/>
                 </div>
 
                 <div className="line-gray my-6" />
 
                 <div>
-                    <SectionDescription className="mb-6" title={"Про нас"} description={about_us} />
+                    <SectionDescription className="mb-6" title={"Про нас"} description={data.about_us} />
                     <SectionDescription className="mb-6" title={"Обов’язки:"}
                         description={
                             <ul className="list-disc pl-5">
-                                {description?.split('\n').map((item, index) => (
+                                {data.description?.split('\n').map((item, index) => (
                                     <li key={index}>{item}</li>
                                 ))}
                             </ul>
@@ -105,7 +151,7 @@ export const JobMainCard: React.FC<Props> = ({
                         className="mb-6"
                         title={"Вимоги:"} 
                         description={<ul className="list-disc pl-5">
-                            {requirements?.split('\n').map((item, index) => (
+                            {data.requirements?.split('\n').map((item, index) => (
                                 <li key={index}>{item}</li>
                             ))}
                         </ul>} 
@@ -113,12 +159,39 @@ export const JobMainCard: React.FC<Props> = ({
                     <SectionDescription 
                     title={"Умови роботи:"} 
                     description={<ul className="list-disc pl-5">
-                        {offer?.split('\n').map((item, index) => (
+                        {data.offer?.split('\n').map((item, index) => (
                             <li key={index}>{item}</li>
                         ))}
                     </ul>} 
-                    />                    
+                    />
+                    {
+                        screenWidth < 768 && loggedIn && role === "CANDIDATE" && (
+                            <div className="sticky bottom-0 w-full bg-white py-6 block">
+                                <div className="flex gap-6 mb-2">
+                                    {
+                                        jobStatus == "" || jobStatus == "APPLICATION_PENDING" ? (
+                                            <ApplyButton
+                                                className="w-full"
+                                                roleAccess={"CANDIDATE"}
+                                                status={jobStatus} 
+                                                loading={loading}
+                                                onClick={() => handleResponseClick("APPLICATION_PENDING")} 
+                                            />
+                                        ) : (
+                                            <ResponseButtonsSection
+                                                className="w-full"
+                                                status={jobStatus}
+                                                loading={loading}    
+                                                onClick={(status) => handleResponseClick(status)}
+                                            />
+                                        )
+                                    }
+                                </div>
+                            </div>
+                        )
+                    }                  
                 </div>
+                
             </div>
         </>
     )

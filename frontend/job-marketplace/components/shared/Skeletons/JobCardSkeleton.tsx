@@ -9,7 +9,7 @@ export const JobCardSkeleton: React.FC<Props> = ({ className }) => {
         
     return (
         <div 
-            className={cn("w-96 rounded-lg p-5 bg-gray-selected mb-3", className)} 
+            className={cn("rounded-lg p-4 bg-gray-selected mb-3", className)} 
             style={{ cursor: 'pointer' }}
         >
             <div className="w-full justify-between flex">
@@ -25,9 +25,9 @@ export const JobCardSkeleton: React.FC<Props> = ({ className }) => {
             </h2>
 
             <div className="space-y-2 mb-3">
-                <Skeleton className="h-2 w-80" />
-                <Skeleton className="h-2 w-80" />
-                <Skeleton className="h-2 w-80" />
+                <Skeleton className="h-2 w-full" />
+                <Skeleton className="h-2 w-full" />
+                <Skeleton className="h-2 w-full" />
             </div>
 
             <div>

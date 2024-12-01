@@ -16,9 +16,9 @@ type ResumeCreate struct {
 	WorkExperience string `json:"work_experience"`
 	Achievements   string `json:"achievements"`
 
-	CategoryName    string `json:"category_name"`
-	SubcategoryName string `json:"subcategory_name"`
-	CityName        string `json:"city"`
+	CategoryName    string  `json:"category_name"`
+	SubcategoryName *string `json:"subcategory_name"`
+	CityName        *string `json:"city"`
 
 	Experience     float64 `json:"experience"`
 	EmploymentName string  `json:"employment_name"`
@@ -27,7 +27,7 @@ type ResumeCreate struct {
 
 func CreateResume(c *gin.Context) {
 	var resume ResumeCreate
-	var categoryID, subcategoryID, employmentID, cityID, userID int
+	var categoryID, subcategoryID, employmentID, cityID, userID *int
 
 	cfg := config.LoadDataBaseConfig()
 
@@ -46,16 +46,29 @@ func CreateResume(c *gin.Context) {
 		return
 	}
 
+	var nullableSubcategoryName, nullableCityName *string
+	if resume.SubcategoryName == nil || *resume.SubcategoryName == "" {
+		nullableSubcategoryName = nil
+	} else {
+		nullableSubcategoryName = resume.SubcategoryName
+	}
+
+	if resume.CityName == nil || *resume.CityName == "" {
+		nullableCityName = nil
+	} else {
+		nullableCityName = resume.CityName
+	}
+
 	query := `
     SELECT c.ID, s.ID, e.ID, ci.ID, u.ID
     FROM "Category" c
-    JOIN "Subcategory" s ON s.category_id = c.ID
-    JOIN "Employment" e ON e.Name = $1
-    JOIN "City" ci ON ci.Name = $2
-    JOIN "User" u ON u.Email = $3
-    WHERE c.Name = $4 AND s.Name = $5`
+    LEFT JOIN "Subcategory" s ON s.category_id = c.ID AND s.Name = $1
+    LEFT JOIN "Employment" e ON e.Name = $2
+    LEFT JOIN "City" ci ON ci.Name = $3
+    LEFT JOIN "User" u ON u.Email = $4
+    WHERE c.Name = $5`
 
-	rows, err := db.Query(query, resume.EmploymentName, resume.CityName, resume.Email, resume.CategoryName, resume.SubcategoryName)
+	rows, err := db.Query(query, nullableSubcategoryName, resume.EmploymentName, nullableCityName, resume.Email, resume.CategoryName)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -72,9 +85,6 @@ func CreateResume(c *gin.Context) {
 		}
 	}
 
-	log.Printf("Searching for Category: %s, Subcategory: %s, Employment: %s, City: %s, User Email: %s",
-		resume.CategoryName, resume.SubcategoryName, resume.EmploymentName, resume.CityName, resume.Email)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -84,9 +94,22 @@ func CreateResume(c *gin.Context) {
 			"category_id", "subcategory_id", "city_id", "experience", "employment_id", "salary", "created_at", "updated_at")
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()) RETURNING id`
 
+	var nullableSubcategoryID, nullableCityID *int
+	if subcategoryID == nil || *subcategoryID == 0 {
+		nullableSubcategoryID = nil
+	} else {
+		nullableSubcategoryID = subcategoryID
+	}
+
+	if cityID == nil || *cityID == 0 {
+		nullableCityID = nil
+	} else {
+		nullableCityID = cityID
+	}
+
 	var resumeID int
 	err = db.QueryRow(query, userID, resume.Title, resume.WorkExperience, resume.Achievements,
-		categoryID, subcategoryID, cityID, resume.Experience, employmentID, resume.Salary).Scan(&resumeID)
+		categoryID, nullableSubcategoryID, nullableCityID, resume.Experience, employmentID, resume.Salary).Scan(&resumeID)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

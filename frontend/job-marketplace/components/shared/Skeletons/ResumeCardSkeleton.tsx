@@ -8,7 +8,7 @@ interface Props{
 export const ResumeCardSkeleton: React.FC<Props> = ({ className }) => {
     return (
         <div 
-            className={cn("w-[438px] rounded-lg p-5 bg-gray-selected mb-3", className)} 
+            className={cn("rounded-lg p-4 bg-gray-selected", className)} 
         >
             <div className="w-full flex items-center justify-between mb-3">
                 <Skeleton className="h-5 w-32"/>

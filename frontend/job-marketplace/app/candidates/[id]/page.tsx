@@ -1,17 +1,17 @@
 'use client';
 
 import { Container } from "@/components/Container";
-import { Resume } from "@/components/shared/Candidate/ResumeDetailsTypes";
-import { ResumeMainCard } from "@/components/shared/Candidate/ResumeMainCard";
-import { ResumeMainCardSkeleton } from "@/components/shared/Skeletons/ResumeMainCardSkeleton";
-import axios from "axios";
+import { NothingFound } from "@/components/shared/nothingFound";
 import { useEffect, useState } from "react";
-import { ToastContainer } from "react-toastify";
+import axios from "axios";
+import { Resume } from "@/types";
+import { ResumeMainCardSkeleton } from "@/components/shared/Skeletons";
+import { ResumeMainCard } from "@/components/shared/Candidate";
 
 export default function CandidatesDetailPage({ params: { id } }: { params: { id: number } }) {
     const [resume, setResume] = useState<Resume | null>(null);
     const [loading, setLoading] = useState(true);
-
+    
     useEffect(() => {
         const fetchResume = async () => {
             try {
@@ -31,25 +31,34 @@ export default function CandidatesDetailPage({ params: { id } }: { params: { id:
 
     if (loading) {
         return (
-            <Container>
-                <ResumeMainCardSkeleton isMainPage={true} className="my-12"/>
-            </Container>
+            <div className="max-md:mx-1 mx-2">
+                <Container>
+                    <ResumeMainCardSkeleton isMainPage={true} className="my-12"/>
+                </Container>
+            </div>
         );
     }
 
     if(!resume) {
-        return <div>No resume found.</div>
+        return <><NothingFound type={"noResume"} /></>;
     }
 
+    const handleResponse = (resumeID: number) => {
+        setResume((prevResume) => {
+          if (prevResume!.id === resumeID) {
+            const updatedResume: Resume = { ...prevResume, status: { ...prevResume!.status, String: "APPLICATION_PENDING" } };
+            return updatedResume;
+          }
+          return prevResume;
+        });
+      };
+
     return (
-        <div className="mx-2">
+        <div className="max-md:mx-1 mx-2 mb-24">
             <Container>
             <ResumeMainCard
                 className="mt-12"
-                title={resume.title}
-                work_experience={resume.work_experience}
-                achievements={resume.achievements}
-                salary={resume.salary}
+                data={resume}
                 keywords={[{ id: 1, name: 'Embedded' },
                 { id: 2, name: 'Linux' },
                 { id: 3, name: 'LinuxPostgreSQL' },
@@ -57,12 +66,10 @@ export default function CandidatesDetailPage({ params: { id } }: { params: { id:
                 { id: 5, name: 'Python' },
                 { id: 6, name: 'Golang' },
                 ]}
-                experience={resume.experience}
-                category_name={resume.category_name}
-                employment_name={resume.employment_name}
-                subcategory_name={resume.subcategory_name}
-                city_name={resume.city_name}
-                isMainPage={true}/>
+                onApplyClick={() => handleResponse(resume.id!)}
+                resumeStatus={resume.status.String}
+                isMainPage={true}
+            />
         </Container>
         </div>
     );

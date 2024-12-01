@@ -25,7 +25,7 @@ const fetchWithRefreshToken = async (url: string, params: URLSearchParams, acces
     });
 };
 
-export const fetchData = async ({url, params, setLoading, setData, setSelectedData}: Props) => {
+export const fetchGroupData = async ({url, params, setLoading, setData, setSelectedData}: Props) => {
     setLoading(true);
     const accessToken = localStorage.getItem("access_token") || "";
 

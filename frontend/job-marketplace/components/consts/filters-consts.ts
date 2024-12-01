@@ -2,6 +2,7 @@ export const categories = [
     {name: 'JavaScript / Front-End', subgroups: ['React.js', 'Vue.js', 'Angular']},
     {name: 'Fullstack', subgroups: []},
     {name: 'Java', subgroups: []},
+    {name: 'Golang', subgroups: []},
     {name: 'C / C++ / Embedded', subgroups: ['C++', 'Embedded', 'C']},
 ]
 
@@ -15,9 +16,15 @@ export const cities = [
     {name: 'Житомир', subgroups: []}
 ]
 
-export const employment = ["Часткова", "Віддалена робота", "Офіс"]
+export const employment = ["Офіс", "Віддалена робота", "Змішаний тип"]
+export const employmentWithSubgroups = [
+    {name: "Офіс", subgroups: []},
+    {name: "Віддалена робота", subgroups: []},
+    {name: "Змішаний тип", subgroups: []},
+]
 
 export const experience = [
+    {name: 'Без досвіду', subgroups: []},
     {name: '1 рік', subgroups: []},
     {name: '2 роки', subgroups: []},
     {name: '3 роки', subgroups: []},
