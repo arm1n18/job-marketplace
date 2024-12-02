@@ -2,11 +2,11 @@
 
 import { Container } from "@/components/Container";
 import { useAuth } from "@/components/hook/AuthContext";
-import { sendForm } from "@/components/hook/sendForm";
 import { validationCreateCompany } from "@/components/shared/validation-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import CompanyService from "@/services/CompanyService";
 import { Asterisk, CircleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -63,8 +63,12 @@ export default function CreateJob() {
         formDataSend.append('phone', formData.phone);
         
 
-        const response = await sendForm({url: 'company/create', data: formDataSend, setLoading: () => {}, router, message: 'Профіль компанії створено успішно', redirectURL: 'jobs/create'});
-        response?.data?.avatar_url ? setAvatarUrl(response.data.avatar_url) : null
+        const companyService  = new CompanyService({ data: formDataSend, setLoading: () => {}, router: router })
+        const response = await companyService.createCompanyProfile();
+        if (response && response.data) {
+            setAvatarUrl(response.data.avatar_url);
+        }
+
     };
 
     return (
@@ -110,7 +114,7 @@ export default function CreateJob() {
                         </div>
                         <div className="lg:w-[464px] gap-5 flex">
                             <Input className="w-full bg-[#F9FAFB] text-[#D0D5DD]"  type="file" 
-                                placeholder="https://ua.linkedin.com/" // проверить
+                                placeholder="https://ua.linkedin.com/"
                                 onChange={handleFileChange}
                             />
                         </div>

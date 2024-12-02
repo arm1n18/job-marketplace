@@ -25,10 +25,10 @@ export const Header: React.FC<Props> = ({ className }) => {
     }, [screenWidth])
 
     return (
-        <nav className={cn(`h-16 border-primary border-gray-primary-b px-4 ${openedMobileMenu ? "fixed top-0 left-0 z-50 w-full border-black/10 " : ""}`, className)}>
+        <nav className={cn(`h-16 border-primary border-gray-primary-b ${openedMobileMenu ? "fixed top-0 left-0 z-50 w-full border-black/10 " : ""}`, className)}>
             <Container className="flex flex-col items-center h-full">
                     {openedMobileMenu && <MobileUpperMenu openedMobileMenu={openedMobileMenu} setOpenedMobileMenu={setOpenedMobileMenu}/>}
-                    <div className={`flex justify-between items-center w-full h-full bg-white ${openedMobileMenu ? "pb-4 box-shadow-custom" : ""}`}>
+                    <div className={`flex justify-between items-center w-full h-full bg-white px-4 ${openedMobileMenu ? "pb-4 box-shadow-custom" : ""}`}>
                         {
                             loggedIn && 
                             <div className="hidden max-md:block">

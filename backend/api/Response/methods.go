@@ -1,4 +1,4 @@
-package api
+package response
 
 import (
 	"database/sql"
@@ -7,14 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-type ApplyData struct {
-	Method        string `json:"method"`
-	ApplyingForId int    `json:"applyingForID"`
-	RecruiterID   int    `json:"recruiterID"`
-	CandidateID   int    `json:"candidateID"`
-	JobID         int    `json:"jobID"`
-}
 
 var status = map[string]string{
 	"applyForJob":    "APPLICATION_PENDING",
@@ -34,7 +26,9 @@ func ApplyForJob(c *gin.Context, applyData *ApplyData, db *sql.DB, status string
 	}
 
 	query := `INSERT INTO "JobApplication" ("job_id", "recruiter_id", "candidate_id", "status", "created_at", "updated_at")
-		VALUES ($1, $2, $3, $4, NOW(), NOW())`
+				VALUES ($1, $2, $3, $4, NOW(), NOW())
+				ON CONFLICT ("job_id", "recruiter_id", "candidate_id") DO NOTHING;
+				`
 
 	_, err := db.Exec(query, applyData.ApplyingForId, applyData.RecruiterID, applyData.CandidateID, status)
 	if err != nil {
@@ -97,7 +91,7 @@ func ApplyForResume(c *gin.Context, applyData *ApplyData, db *sql.DB, status str
 	c.JSON(http.StatusOK, gin.H{"message": "Resume applied successfully"})
 }
 
-func Response(c *gin.Context, db *sql.DB) {
+func (r *Response) Response(c *gin.Context, db *sql.DB) {
 	var applyData ApplyData
 
 	if err := c.ShouldBindJSON(&applyData); err != nil {

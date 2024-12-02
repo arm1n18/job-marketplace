@@ -324,6 +324,10 @@
   padding: 16px 16px;
 }
 
+.filters-list.two {
+  width: 100%;
+}
+
 
 .subfilters-list {
   padding: 4px 4px;

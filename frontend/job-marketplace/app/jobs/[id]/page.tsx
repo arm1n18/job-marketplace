@@ -5,6 +5,7 @@ import { JobMainCard, SimilarJobs } from "@/components/shared";
 import { NothingFound } from "@/components/shared/nothingFound";
 import { JobMainCardSkeleton } from "@/components/shared/Skeletons";
 import FetchDataService from "@/services/FetchDataService";
+import JobsService from "@/services/JobsService";
 import { Job } from "@/types";
 import { useEffect, useState } from "react";
 
@@ -14,21 +15,8 @@ export default function JobsDetailPage({ params: { id } }: { params: { id: numbe
 
 
     useEffect(() => {
-        // const fetchJob = async () => {
-        //     try {
-        //         const response = await axios.get(`http://192.168.0.106:8080/jobs/${id}`);
-        //         console.log("Fetched job:", response.data);
-        //         setJob(response.data);
-        //     } catch (err) {
-        //         console.error("Error fetching job:", err)
-        //     } finally {
-        //         setLoading(false);
-        //     }
-        // };
-    
-        // fetchJob();
-        const getJobs = new FetchDataService({url: `jobs/${id}`, setLoading, setData: setJob});
-        getJobs.getData();
+        const getJobByID = new JobsService({url: `jobs/${id}`, setLoading, setData: setJob});
+        getJobByID.fetchJobByID();
     }, [id]);
 
     if (loading) {

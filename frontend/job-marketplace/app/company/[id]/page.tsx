@@ -7,60 +7,39 @@ import { FiltersSection } from "@/components/shared/FiltersSection";
 import { NothingFound } from "@/components/shared/nothingFound";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { CompanyCard } from "@/components/shared/Company/CompanyCard";
 import { JobCard, JobMainCard, SearchInput } from "@/components/shared";
 import { MobileFiltersSection } from "@/components/shared/MobileComponents/MobileFiltersSection";
 import { CompanyCardSkeleton, JobCardSkeleton, JobMainCardSkeleton, Skeleton } from "@/components/shared/Skeletons";
 import { Company, FiltersType, Job } from "@/types";
 import { useWindowWidth } from "@/components/hook/useWindowWidth";
-import JWTService from "@/services/JWTService";
+import CompanyService from "@/services/CompanyService";
 
 export default function CompanyPage({ params: { id } }: { params: { id: string } }) {
+    const searchParams = useSearchParams() as URLSearchParams
+    const [filters, setFilters] = useState<FiltersType>(filtersList(searchParams));
     const [company, setCompany] = useState<Company | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [jobs, setJobs] = useState<Job[] | null>([]);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+    const [companyJobs, setCompanyJobs] = useState<Job[] | null>([]);
+    const searchFilter = searchParams.get('search')
+    const [loading, setLoading] = useState(true);
     const screenWidth = useWindowWidth();
     const router = useRouter();
-    const searchParams = useSearchParams() as URLSearchParams
-    const searchFilter = searchParams.get('search')
-
-    const [filters, setFilters] = useState<FiltersType>(filtersList(searchParams));
-
+    
+    
     const updateFilters = (updatedFilters: Partial<FiltersType>) => {
         setFilters((filters) => ({
             ...filters,
             ...updatedFilters,
         }));
     };
-
+    
     const params = useQueryParams(searchFilter, filters);
-    const jwtService = new JWTService();
 
     useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                router.push(`?${params.toString()}`);
-                const response = await axios.get(`http://192.168.0.106:8080/company/${id}?${params.toString()}`, {
-                    headers: {
-                        Authorization: jwtService.getAccessToken() ? `Bearer ${jwtService.getAccessToken()}` : undefined,
-                    }, 
-                });
-                setCompany(response.data.company);
-                setJobs(response.data.jobs);
-
-                if(response.data.jobs.length > 0) {
-                    setSelectedJob(response.data.jobs[0]);
-                }
-            } catch (err) {
-                console.error("Error fetching jobs:", err)
-            } finally {
-                setLoading(false);
-            }
-        };
-    
-        fetchJobs();
+        const company = new CompanyService({ id: id, params: params, setLoading: setLoading, setCompany: setCompany,
+            setCompanyJobs: setCompanyJobs, setSelectedJob: setSelectedJob});
+        company.fetchCompanyInfo();
     }, [id, searchFilter, filters]);
 
     const handleSearch = async (query: string) => {
@@ -69,17 +48,17 @@ export default function CompanyPage({ params: { id } }: { params: { id: string }
     }
 
     const handleResponse = (jobID: number, status: string) => {
-        setJobs((prevJobs) =>{
+        setCompanyJobs((prevJobs) => {
             if (!prevJobs) return prevJobs;
-            const updatedJobs = prevJobs.map((prevJob) => {
-                if (prevJob.id === jobID) {
+            const updatedJobs = prevJobs
+                .map((prevJob) => {
+                    if (prevJob.id === jobID) {
                     const updatedJob = { ...prevJob, status: { ...prevJob.status, String: status } };
-                    if(selectedJob?.id === jobID) setSelectedJob(updatedJob);
+                    if (selectedJob?.id === jobID) setSelectedJob(updatedJob);
                     return updatedJob;
-                }
-                return prevJob;
-            })
-            
+                    }
+                    return prevJob;
+                }) as Job[];
             return updatedJobs;
         });
     };
@@ -126,13 +105,13 @@ export default function CompanyPage({ params: { id } }: { params: { id: string }
                 facebook={company.facebook} />
             
             <div className="mb-12 flex">
-                <p className="text-title-dark">Вакансії компанії {company.company_name}  <span className="text-title-bg">{jobs ? jobs?.length : 0}</span></p>
+                <p className="text-title-dark">Вакансії компанії {company.company_name}  <span className="text-title-bg">{companyJobs ? companyJobs?.length : 0}</span></p>
             </div>
             
             <SearchInput onSearch={handleSearch} />
             <FiltersSection onUpdateFilters={updateFilters} className="my-12"/>
             
-            {!loading && !jobs && 
+            {!loading && !companyJobs && 
                 <NothingFound type={"notFound"} />
             }
             <div className="md:grid grid-cols-[32%,auto] w-full max-md:mt-12">
@@ -142,20 +121,20 @@ export default function CompanyPage({ params: { id } }: { params: { id: string }
                             <JobCardSkeleton key={index} className={`${index != 6 ? 'mb-5' : ''}`}/>
                         ))
                     ) : (
-                        jobs != null && jobs.length > 0 && jobs.map((job, index: number) => (
+                        companyJobs != null && companyJobs.length > 0 && companyJobs.map((companyJob, index: number) => (
 
                                 <JobCard
-                                    className={`${index != jobs.length - 1 ? 'mb-3' : ''} ${selectedJob === job && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
-                                    key={job.id}
-                                    onClick={() => {screenWidth > 768 ? setSelectedJob(job) : router.push(`/jobs/${job.id}`)}}
-                                    data={job}
+                                    className={`${index != companyJobs.length - 1 ? 'mb-3' : ''} ${selectedJob === companyJob && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
+                                    key={companyJob.id}
+                                    onClick={() => {screenWidth > 768 ? setSelectedJob(companyJob) : router.push(`/jobs/${companyJob.id}`)}}
+                                    data={companyJob}
                                     keyInfo={[
-                                        job.city_name || "Україна",
-                                        job.employment_name ?? "",
-                                        job.experience
-                                            ? `${job.experience.toString()} ${job.experience > 4 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
+                                        companyJob.city_name || "Україна",
+                                        companyJob.employment_name ?? "",
+                                        companyJob.experience
+                                            ? `${companyJob.experience.toString()} ${companyJob.experience > 4 ? "років" : (companyJob.experience > 1 ? "роки" : "рік")} досвіду`
                                             : "Без досвіду",
-                                        job.subcategory_name ?? job.category_name ?? "",
+                                        companyJob.subcategory_name ?? companyJob.category_name ?? "",
                                     ]}/>
       
                             ))
@@ -165,7 +144,7 @@ export default function CompanyPage({ params: { id } }: { params: { id: string }
                 {loading ? (
                     <JobMainCardSkeleton />
                 ) : (
-                    jobs != null && jobs.length > 0 && selectedJob && (
+                    companyJobs != null && companyJobs.length > 0 && selectedJob && (
                         <JobMainCard
                             className="h-screen overflow-auto scrollbar top-6 hidden md:block"
                             data={selectedJob}

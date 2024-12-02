@@ -15,8 +15,8 @@ export default class FetchDataService {
     private doubleData?: boolean;
     private params?: URLSearchParams;
     private setLoading: (loading: boolean) => void;
-    setData: any;
-    setSelectedData?: (data: any) => void;
+    private setData: any;
+    private setSelectedData?: (data: any) => void;
 
 
     private JWTService: JWTService

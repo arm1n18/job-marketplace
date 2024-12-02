@@ -39,7 +39,7 @@ export default function CreateJob() {
         e.preventDefault();
         await useFormSubmit({
             e, 
-            url: "candidates/create",
+            url: "candidates/",
             dataToSend: formData,
             setLoading: () => {},
             validationZod: validationCreateResume,

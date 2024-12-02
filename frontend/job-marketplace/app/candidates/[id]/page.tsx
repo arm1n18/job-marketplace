@@ -7,25 +7,15 @@ import axios from "axios";
 import { Resume } from "@/types";
 import { ResumeMainCardSkeleton } from "@/components/shared/Skeletons";
 import { ResumeMainCard } from "@/components/shared/Candidate";
+import FetchDataService from "@/services/FetchDataService";
 
 export default function CandidatesDetailPage({ params: { id } }: { params: { id: number } }) {
     const [resume, setResume] = useState<Resume | null>(null);
     const [loading, setLoading] = useState(true);
     
     useEffect(() => {
-        const fetchResume = async () => {
-            try {
-                const response = await axios.get(`http://192.168.0.106:8080/candidates/${id}`);
-                console.log("Fetched resume:", response.data);
-                setResume(response.data);
-            } catch (err) {
-                console.log("Error fetching resume:", err)
-            } finally {
-                setLoading(false);
-            }
-
-        };
-        fetchResume();
+        const getResumeByID = new FetchDataService({url: `candidates/${id}`, setLoading, setData: setResume});
+        getResumeByID.getData();
     }, [id]);
 
 

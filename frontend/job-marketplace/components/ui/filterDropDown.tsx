@@ -57,7 +57,7 @@ export const FilterDropDown: React.FC<Props> = ({className, title, categories, s
                 <ChevronUp size={24} className={`size-4 ml-1 mt-1 ${!isOpen ? 'rotate-180' : ''}`}/>
             </div>
             {isOpen && (
-                <ul className={cn("filters-list-two", className)}>
+                <ul className={cn("filters-list two", className)}>
                 {categories != null && Array.isArray(categories) && categories.map((category, index) => (
                     <React.Fragment key={index}>
                         <li key={index} className={`${selected.group != '' && selected.group && selected.subgroup == '' && selected.group === category.name ? `filter-item-selected` : `filter-item`} flex justify-between items-center mb-1`}

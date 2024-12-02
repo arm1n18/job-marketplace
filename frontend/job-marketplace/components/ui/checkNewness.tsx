@@ -1,5 +1,5 @@
 import { CalendarClock, Sparkles } from "lucide-react";
-import { isNew } from "../hook/isNew";
+import { isNew } from "../../lib/utils/isNew";
 
 interface Props {
     created_at: string;

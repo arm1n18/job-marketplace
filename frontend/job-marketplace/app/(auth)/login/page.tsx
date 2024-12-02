@@ -14,7 +14,7 @@ export default function Login() {
     const [formData, setFormData] = useState<{email: string, password: string}>({ email: '', password: '' });
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [serverError, setServerError] = useState("");
-    const { loggedIn, setLoggedIn, setRole, setId, setEmail, setAvatarUrl } = useAuth();
+    const { setLoggedIn, setRole, setId, setEmail } = useAuth();
     const router = useRouter();
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -23,7 +23,6 @@ export default function Login() {
             [name]: value,
         }));
     }
-
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -39,7 +38,7 @@ export default function Login() {
             return;
         }
 
-        const loginUser = new AuthService({ data: formData, router, setLoggedIn}, { setLoggedIn, setRole, setId, setEmail });
+        const loginUser = new AuthService({ data: formData, router}, { setLoggedIn, setRole, setId, setEmail });
         const response = await loginUser.loginUser();
 
 
