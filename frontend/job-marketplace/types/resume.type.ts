@@ -2,6 +2,7 @@ import { KeywordsType } from "./types";
 
 
 export interface Resume {
+  company_id: string;
   id?: number;
   jobID?: number;
   creator_id?: number;

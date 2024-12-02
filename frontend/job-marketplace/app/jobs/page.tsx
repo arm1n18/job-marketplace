@@ -12,6 +12,7 @@ import { NothingFound } from "@/components/shared/nothingFound";
 import { JobCardSkeleton } from "@/components/shared/Skeletons/JobCardSkeleton";
 import { JobMainCardSkeleton } from "@/components/shared/Skeletons/JobMainCardSkeleton";
 import FetchDataService from "@/services/FetchDataService";
+import JobsService from "@/services/JobsService";
 import { FiltersType } from "@/types/filters.type";
 import { Job } from "@/types/job.type";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -41,8 +42,8 @@ export default function Jobs() {
 
     useEffect(() => {
         router.push(`?${params.toString()}`);
-        const getJobs = new FetchDataService({url: "jobs/", params, setLoading, setData: setJobs, setSelectedData: setSelectedJob});
-        getJobs.getData();
+        const getJobs = new JobsService({url: "jobs/", params, setLoading, setData: setJobs, setSelectedData: setSelectedJob});
+        getJobs.fetchJobs();
     }, [searchFilter, filters]);
     
     const handleSearch = async (query: string) => {

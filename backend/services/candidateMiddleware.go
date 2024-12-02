@@ -12,7 +12,6 @@ func CandidateMiddleware() gin.HandlerFunc {
 			c.Status(http.StatusForbidden)
 			c.Abort()
 		}
-
 		c.Next()
 	}
 }

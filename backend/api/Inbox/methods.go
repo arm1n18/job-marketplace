@@ -1,6 +1,7 @@
-package api
+package inbox
 
 import (
+	job "backend/api/Job"
 	"database/sql"
 	"log"
 	"net/http"
@@ -8,23 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type InboxData struct {
-	Method        string `json:"method"`
-	ApplyingForId int    `json:"applyingForId"`
-	RecruiterID   int    `json:"recruiterId"`
-	CandidateID   int    `json:"candidateId"`
-}
-
-type ResumeRespond struct {
-	Resume
-	JobID    int    `json:"jobID"`
-	JobTitle string `json:"jobTitle"`
-}
-
-func GetInboxCandidateApplications(c *gin.Context, db *sql.DB) []Job {
+func GetInboxCandidateApplications(c *gin.Context, db *sql.DB) []job.Job {
 	userID, _ := c.Get("userID")
 
-	var applications []Job
+	var applications []job.Job
 
 	query := (`
 	SELECT j.ID, j.creator_id, j.Title, j.Description, j.Requirements, j.Offer,
@@ -48,13 +36,13 @@ func GetInboxCandidateApplications(c *gin.Context, db *sql.DB) []Job {
 
 	rows, err := db.Query(query, userID)
 	if err != nil {
-		log.Printf("Ошибка выполнения запроса: %v\n", err)
+		log.Printf("Помилка виконання запиту: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		job := Job{}
+		job := job.Job{}
 		err := rows.Scan(&job.ID, &job.CreatorID, &job.Title, &job.Description, &job.Requirements, &job.Offer,
 			&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience, &job.EmploymentName,
 			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName, &job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status)
@@ -68,10 +56,10 @@ func GetInboxCandidateApplications(c *gin.Context, db *sql.DB) []Job {
 	return applications
 }
 
-func GetInboxCandidateOffers(c *gin.Context, db *sql.DB) []Job {
+func GetInboxCandidateOffers(c *gin.Context, db *sql.DB) []job.Job {
 	userID, _ := c.Get("userID")
 
-	var offers []Job
+	var offers []job.Job
 
 	query := (`
 	SELECT j.ID, j.creator_id, j.Title, j.Description, j.Requirements, j.Offer,
@@ -95,13 +83,13 @@ func GetInboxCandidateOffers(c *gin.Context, db *sql.DB) []Job {
 
 	rows, err := db.Query(query, userID)
 	if err != nil {
-		log.Printf("Ошибка выполнения запроса: %v\n", err)
+		log.Printf("Помилка виконання запиту: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		job := Job{}
+		job := job.Job{}
 		err := rows.Scan(&job.ID, &job.CreatorID, &job.Title, &job.Description, &job.Requirements, &job.Offer,
 			&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience, &job.EmploymentName,
 			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName, &job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status)
@@ -141,7 +129,7 @@ func GetInboxRecruiterApplications(c *gin.Context, db *sql.DB) []ResumeRespond {
 
 	rows, err := db.Query(query, userID)
 	if err != nil {
-		log.Printf("Ошибка выполнения запроса: %v\n", err)
+		log.Printf("Помилка виконання запиту: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 	}
 	defer rows.Close()
@@ -169,36 +157,25 @@ func GetInboxRecruiterOffers(c *gin.Context, db *sql.DB) []ResumeRespond {
 
 	query := (`
 	SELECT 
-    r.ID, 
-    r.creator_id, 
-    r.Title, 
-    r.work_experience AS WorkExperience, 
-    r.Achievements,
-    c.Name AS CategoryName,
-    s.Name AS SubcategoryName,
-    ct.Name AS CityName,
-    r.Experience, 
-    e.Name AS EmploymentName,
-    r.salary, 
-    r.created_at, 
-    r.updated_at,
-    ja.status AS status, 
-    j.Title AS JobTitle, 
-    j.ID AS JobID
-FROM "Resume" r
-LEFT JOIN "Category" c ON r.category_id = c.ID
-LEFT JOIN "Subcategory" s ON r.subcategory_id = s.ID
-LEFT JOIN "City" ct ON r.city_id = ct.ID
-LEFT JOIN "Employment" e ON r.employment_id = e.ID
-LEFT JOIN "User" u ON r.creator_id = u.ID
-LEFT JOIN "JobApplication" ja ON ja.candidate_id = r.creator_id
-LEFT JOIN "Job" j ON ja.job_id = j.ID
-WHERE ja.recruiter_id = $1;
-`)
+		r.ID, r.creator_id, r.Title, r.work_experience AS WorkExperience, 
+		r.Achievements, c.Name AS CategoryName, s.Name AS SubcategoryName,
+		ct.Name AS CityName, r.Experience, e.Name AS EmploymentName,
+		r.salary, r.created_at, r.updated_at, ja.status AS status, 
+    	j.Title AS JobTitle,  j.ID AS JobID
+	FROM "Resume" r
+	LEFT JOIN "Category" c ON r.category_id = c.ID
+	LEFT JOIN "Subcategory" s ON r.subcategory_id = s.ID
+	LEFT JOIN "City" ct ON r.city_id = ct.ID
+	LEFT JOIN "Employment" e ON r.employment_id = e.ID
+	LEFT JOIN "User" u ON r.creator_id = u.ID
+	LEFT JOIN "JobApplication" ja ON ja.candidate_id = r.creator_id
+	LEFT JOIN "Job" j ON ja.job_id = j.ID
+	WHERE ja.recruiter_id = $1;
+	`)
 
 	rows, err := db.Query(query, userID)
 	if err != nil {
-		log.Printf("Ошибка выполнения запроса: %v\n", err)
+		log.Printf("Помилка виконання запиту: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
 	}
 	defer rows.Close()
@@ -219,7 +196,7 @@ WHERE ja.recruiter_id = $1;
 	return offers
 }
 
-func GetInbox(c *gin.Context, db *sql.DB) {
+func (in *Inbox) GetInbox(c *gin.Context, db *sql.DB) {
 	userRole, _ := c.Get("userRole")
 	userID, _ := c.Get("userID")
 

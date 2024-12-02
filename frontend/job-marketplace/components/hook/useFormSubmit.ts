@@ -13,10 +13,9 @@ interface FormSubmitProps {
     message: string;
 }
 
-/* Validate the Submition Data Before Sending */
+
 export const useFormSubmit = async (props: FormSubmitProps) : Promise<void> => {
     const { e, url, dataToSend, router, validationZod, setErrors, message, redirectURL } = props;
-    // e.preventDefault();
     const result  = validationZod.safeParse(dataToSend);
     if(!result.success) {
         const formErrors: { [key: string]: string} = {};

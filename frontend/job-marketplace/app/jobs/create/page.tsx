@@ -39,7 +39,7 @@ export default function CreateJob() {
 
         await useFormSubmit({
             e, 
-            url: "jobs/create",
+            url: "jobs/",
             dataToSend: formdata,
             setLoading: () => {},
             validationZod: validationCreateJob,

@@ -16,6 +16,7 @@ import { JobCard } from "../Job";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { ResponseButtonsSection } from "@/components/ui/responseButtonsSection";
+import CompanyService from "@/services/CompanyService";
 
 interface Props{
     data: Resume;
@@ -37,8 +38,8 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
 
     useEffect(() => {
         if (jobsList) {
-            const getJobs = new FetchDataService({url: "company/jobs", setLoading, setData: setJobs});
-            getJobs.getData();
+            const getCompanyJobs = new CompanyService({id: data.company_id!, setLoading: setLoading, setCompanyJobs: setJobs});
+            getCompanyJobs.fetchCompanyJobs();
         }
     }, [jobsList]);
 

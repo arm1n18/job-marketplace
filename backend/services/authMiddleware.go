@@ -15,7 +15,6 @@ import (
 
 func AuthMiddleware(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Load .env file
 		if err := godotenv.Load(".env"); err != nil {
 			log.Fatalf("Ошибка загрузки .env файла: %v", err)
 		}
@@ -73,5 +72,4 @@ func AuthMiddleware(db *sql.DB) gin.HandlerFunc {
 		c.Set("userRole", userRole)
 		c.Next()
 	}
-
 }

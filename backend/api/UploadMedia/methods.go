@@ -1,4 +1,4 @@
-package api
+package uploadmedia
 
 import (
 	"backend/config"

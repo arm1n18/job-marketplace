@@ -3,7 +3,7 @@ import { NoImgAvatars } from "./noImgAvatars";
 import { ChevronDown, ChevronUp, CircleUserRound, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { LogOutUser } from "@/lib/utils/LogOutUser";
-import { fetchAvatar } from "../hook/fetchAvatar";
+import { fetchAvatar } from "../../lib/utils/fetchAvatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../hook/AuthContext";

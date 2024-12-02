@@ -6,7 +6,7 @@ import JWTService from "./JWTService";
 interface FormData {
     url: string;
     redirectURL?: string;
-    data: {[key: string]: string | number | File} | FormData;
+    data: any;
     setLoading: any;
     router: ReturnType<typeof useRouter>;
     message: string;
@@ -15,8 +15,8 @@ interface FormData {
 export default class FormService {
     public url: string;
     private redirectURL?: string;
-    private data: {[key: string]: string | number | File} | FormData;
-    private setLoading: any;
+    private data: any;
+    public setLoading: any;
     private router: ReturnType<typeof useRouter>;
     private message: string;
 
@@ -31,7 +31,6 @@ export default class FormService {
         this.router = FormData.router;
         this.message = FormData.message;
     }
-
 
     private async sendForm() {
         try {
@@ -52,7 +51,6 @@ export default class FormService {
         }
     }
 
-    
     private handleRedirect(data: any) {
         if(data.id) {
             this.router.push(`/${this.redirectURL}/${data.id}`);
@@ -67,5 +65,4 @@ export default class FormService {
         this.setLoading(false);
         return response;
     }
-    
 }

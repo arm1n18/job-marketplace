@@ -49,7 +49,7 @@ export default class ApplyService {
         if(this.role === "CANDIDATE" && this.data.method as Method) {
             await this.respondTo();
             return { success: true};
-        } else if(this.role === "RECRUITER" && this.data.method === "applyForResume") {
+        } else if(this.role === "RECRUITER" && this.data.method as Method) {
             await this.respondTo();
             return { success: true};
         }

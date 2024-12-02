@@ -22,7 +22,7 @@ func LoadAwsConfig() (aws.Config, error) {
 	secretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
 	if region == "" || accessKeyID == "" || secretAccessKey == "" {
-		return aws.Config{}, fmt.Errorf("отсутствуют обязательные переменные окружения: AWS_REGION, AWS_ACCESS_KEY_ID, или AWS_SECRET_ACCESS_KEY")
+		return aws.Config{}, fmt.Errorf("Відсутні: AWS_REGION, AWS_ACCESS_KEY_ID, или AWS_SECRET_ACCESS_KEY")
 	}
 
 	cfg := aws.Config{
