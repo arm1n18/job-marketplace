@@ -64,7 +64,7 @@ export default class CompanyService {
         try {
             const response = await axios.get(`http://192.168.0.106:8080/company/${this.id}?${this.params?.toString()}`, {
                 headers: {
-                    Authorization: this.JWTService.getAccessToken() ? `Bearer ${this.JWTService.getAccessToken()}` : undefined,
+                    Authorization: JWTService.getAccessToken() ? `Bearer ${JWTService.getAccessToken()}` : undefined,
                 }, 
             });
             this.setCompany(response.data.company);
@@ -74,7 +74,7 @@ export default class CompanyService {
                 this.setSelectedJob(response.data.jobs[0]);
             }
         } catch (err) {
-            return this.JWTService.handleError(err, () => this.fetchCompanyInfo());
+            return JWTService.handleError(err, () => this.fetchCompanyInfo());
         } finally {
             if (this.setLoading) {
                 this.setLoading(false);
@@ -87,6 +87,23 @@ export default class CompanyService {
     }
 
     public async createCompanyProfile() {
-        return this.SubmitForm.submitForm();
+        // return this.SubmitForm.submitForm();
+        try {
+            const response = await axios.post(`http://192.168.0.106:8080/company/`, this.data ,{
+                headers: {
+                    Authorization: JWTService.getAccessToken() ? `Bearer ${JWTService.getAccessToken()}` : undefined,
+                    "Content-Type": "multipart/form-data",
+                },            
+            });
+            
+            if(response.status === 200) {
+                toast.success("Профіль компанії створено успішно");
+                this.SubmitForm.handleRedirect(response.data);
+            }
+
+            return response;
+        } catch (error: any) {
+            return JWTService.handleError(error, () => this.createCompanyProfile());
+        }
     }
 }

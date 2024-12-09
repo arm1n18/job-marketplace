@@ -1,106 +1,97 @@
-import { cn } from "@/lib/utils";
-import { KeyWord } from "../../ui/key-word";
-import { KeywordsType } from "@/types/types";
-import { SectionDescription } from "@/components/ui/section-description";
-import { ParametersLine } from "@/components/ui/parametrs-line";
-import { useAuth } from "@/components/hook/AuthContext";
-import { Resume } from "@/types/resume.type";
-import { ResponseDataType } from "@/types/response.type";
-import { useEffect, useRef, useState } from "react";
-import ApplyService from "@/services/ApplyService";
-import { ApplyButtonRecruiter } from "@/components/ui/applyButtonRecuiter";
+import { BreadCrumb, ResponseButtonsSection, Button, ParametersLine, SectionDescription, KeyWord, ApplyButtonRecruiter, AlertDialog  } from "@/components/ui";
+import { SetStateAction, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Job } from "@/types";
-import FetchDataService from "@/services/FetchDataService";
 import { JobCard } from "../Job";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import { ResponseButtonsSection } from "@/components/ui/responseButtonsSection";
-import CompanyService from "@/services/CompanyService";
+import { Share2, X } from "lucide-react";
+import { JobCardSkeleton } from "../Skeletons";
+import { Job, KeywordsType, Resume } from "@/types";
+import { Method, ResponseDataType } from "@/types/response.type";
+import { useAuth, useOpenedRef, useWindowWidth } from "@/components/hook";
+import ApplyService from "@/services/ApplyService";
+import FetchDataService from "@/services/FetchDataService";
+import { cn, copyURL } from "@/lib";
+import CandidateService from "@/services/CandidateService";
+import { useRouter } from "next/navigation";
+import { EllipsisMenu } from "@/components/ui/EllipsisMenu";
 
 interface Props{
     data: Resume;
     keywords?: KeywordsType[];
-    onApplyClick: () => void;
+    onApplyClick: (resumeID: number, status: string) => void;
     isMainPage?: boolean;
     resumeStatus: string;
+    responseID?: number
+    route?: string
     className ?: string;
 }
 
-export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, className, onApplyClick, resumeStatus}) => {
+const methods: { [key: string]: string } = {
+    "OFFER_PENDING": "applyForResume",
+    "SUCCEEDED": "acceptResume",
+    "REJECTED": "rejectResume",
+}
+
+export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, className, onApplyClick, resumeStatus, route, responseID}) => {
     const [jobs, setJobs] = useState<Job[]>([]);
+    const [openedAlert, setOpenedAlert] = useState<boolean>(false);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [ jobsList, setJobsList ] = useState(false);
     const { role, id } = useAuth();
+    const [ isOpen, setIsOpen ] = useState<boolean>(false);
+    const screenWidth = useWindowWidth();
     const [ loading, setLoading ] = useState(false);
-    const overlayRef = useRef<HTMLDivElement | null>(null);
     const openedRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     useEffect(() => {
         if (jobsList) {
-            const getCompanyJobs = new CompanyService({id: data.company_id!, setLoading: setLoading, setCompanyJobs: setJobs});
-            getCompanyJobs.fetchCompanyJobs();
+            const getJobs = new FetchDataService({url: "company/jobs", setLoading, setData: setJobs});
+            getJobs.getData();
         }
-    }, [jobsList]);
-
-    useEffect(() => {
-        if (!overlayRef.current) {
-            const overlay = document.createElement('div');
-            overlay.className = 'overlay';
-            overlayRef.current = overlay;
-        }
-        
-        const overlay = overlayRef.current;
-
-        if (typeof window !== 'undefined') {
-            if(jobsList) {
-                document.body.style.overflow = 'hidden';
-                document.body.appendChild(overlay);
-            } else {
-                document.body.style.overflow = '';
-                if (overlay.parentNode) {
-                    overlay.parentNode.removeChild(overlay);
-                }
-            }
-        }
-        
-        const handleClickOutside = (e: MouseEvent) => {
-            e.stopPropagation();
-            if(jobsList && openedRef.current && !openedRef.current.contains(e.target as HTMLElement)) {
-                setJobsList(false)
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside)
     }, [jobsList]);
     
-    const applyData: ResponseDataType = {
-        method: "applyForResume",
-        applyingForID: data.id!,
-        recruiterID: data.creator_id!,
-        candidateID: id!,
-        jobID: selectedJob?.id
-    }
+    
+    const handleResponseClick = async (status: string) => {
+        const selectedMethod = methods[status] as Method;
 
-    const applyJobs = new ApplyService({role: role, data: applyData, jobID: data.id});
+        const applyData: ResponseDataType = {
+            method: selectedMethod,
+            applyingForID: data.id!,
+            recruiterID: id!,
+            candidateID: data.creator_id!,
+            jobID: data!.jobID
+        }
 
-    const handleResponseClick = async () => {
-        console.log(applyData);
-        if(data.status.String == "") {
-            setLoading(true);
-            try {
-                const response = await applyJobs.respond();
-                if (response.success) {
-                    onApplyClick();
-                }
-            } catch (error) {
-                console.log(error);
+        const applyJobs = new ApplyService({role: role, data: applyData, jobID: data.id});
+
+        setLoading(true);
+        try {
+            const response = await applyJobs.respond();
+            if (response.success) {
+                onApplyClick(data.id!, status);
             }
+        } catch (error) {
+            console.log(error);
+        } finally {
             setLoading(false);
         }
     }
+
+    useOpenedRef({isOpen: isOpen, setIsOpen: setIsOpen, openedRef});
+
     return (
         <>  
+            {openedAlert && (
+                <AlertDialog
+                    opened={openedAlert}
+                    setOpened={setOpenedAlert}
+                    title="Ви впевнені?"
+                    description="Ця дія призведе до видалення вакансії, всіх пов'язних з нею відгуків та запропонованих пропозицій."
+                    onConfirm={async () => {CandidateService.deleteResume(data.id!), setOpenedAlert(false)}}
+                />
+            )}
             <div className={cn("flex-grow md:border md:border-[#D0D5DD] rounded-lg sticky max-md:p-4 p-8", className)}>
+                {isMainPage && <BreadCrumb items={[data.category_name!, data.subcategory_name!]} />}
                 {
                     data.jobTitle && (
                         <>
@@ -111,8 +102,25 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
                 }
                 <header className="w-full flex justify-between items-center">
                         <div className="w-full flex justify-between max-md:flex-col">
+                                <div className="flex items-center justify-between">
                                 <h2 className="text-title-bg leading-none max-md:mb-4">{data.title}</h2>
-                                <span className="text-salary-bg leading-none">${data.salary}{isMainPage ?  " / на місяць"  : ''}</span>
+                                    {data.creator_id == id && screenWidth < 768 && (
+                                        <EllipsisMenu isOpen={isOpen} openedAlert={openedAlert}
+                                            setIsOpen={setIsOpen} setOpenedAlert={setOpenedAlert}
+                                            openedRef={openedRef} data={data.id} url={"candidates"}
+                                        />
+                                    )}
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className="text-salary-bg leading-none">${data.salary}{isMainPage ?  " / на місяць"  : ''}</span>
+                                    {data.creator_id == id && screenWidth > 768 && (
+                                        <EllipsisMenu isOpen={isOpen} openedAlert={openedAlert}
+                                            setIsOpen={setIsOpen} setOpenedAlert={setOpenedAlert}
+                                            openedRef={openedRef} data={data.id} url={"candidates"}
+                                            className="max-md:hidden"
+                                        />
+                                    )}
+                                </div>
                         </div>
                 </header>
 
@@ -144,77 +152,64 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
                     )}
 
                 </div>
-
+                <div className="sticky bottom-0 w-full bg-white py-6 block">
                 {
                     resumeStatus == "" || resumeStatus == "OFFER_PENDING" ? (
-                        <ApplyButtonRecruiter
-                            className="w-full"
-                            roleAccess={"RECRUITER"}
-                            status={resumeStatus} 
-                            loading={loading}
-                            jobsList={jobsList}
-                            setJobsList={setJobsList}
-                        />
+                        <div className="flex gap-2">
+                            {role === "RECRUITER" && <Button variant={"outline"} onClick={() => copyURL(window.location.href)}><Share2 size={16}/></Button>}
+                            <ApplyButtonRecruiter
+                                className="w-full"
+                                roleAccess={"RECRUITER"}
+                                status={resumeStatus} 
+                                loading={loading}
+                                jobsList={jobsList}
+                                setJobsList={setJobsList}
+                            />
+                        </div>
                     ) : (
                         <ResponseButtonsSection
                             className="w-full"
                             status={resumeStatus}
                             loading={loading}    
-                            onClick={() => handleResponseClick()}
+                            onClick={(status) => handleResponseClick(status)}
+                            id={responseID}
+                            route={route}
                         />
                     )
                 }
-                
+                </div>
             </div>
             {
-                // jobsList && (
-                //     <div className="z-30 filters-list offer h-5/6 overflow-auto scrollbar absolute top-64 left-0 right-0 mx-auto max-w-md">
-                        
-                //         {jobs != null && jobs.length > 0 && jobs.map((job, index: number) => (
-                            
-                //         <>
-                //             <JobCard
-                //             className={`${index != jobs.length - 1 ? 'mb-3' : ''} ${selectedJob === job ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200 max-w-md`}
-                //             key={job.id}
-                //             onClick={() => setSelectedJob(job)}
-                //             data={job}
-                //             keyInfo={[
-                //                 job.city_name || "Україна",
-                //                 job.employment_name ?? "",
-                //                 job.experience
-                //                     ? `${job.experience.toString()} ${job.experience > 4 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
-                //                     : "Без досвіду",
-                //                 job.subcategory_name ?? job.category_name ?? "",
-                //             ]}/>
-
-                //         </>
-                //         ))}
-                //             <div className="sticky -bottom-4 w-full bg-white py-4 flex gap-8">
-                //                 <span className="text-common-blue my-auto">Скасувати</span>
-                //                 <Button className="w-full" onClick={() =>{handleResponseClick(), setJobsList(!jobsList)}}>Запропонувати вакансію</Button>
-                //             </div>
-                // </div> 
-                // )
                 jobsList && (
-                    <div className="w z-30 fixed max-w-md top-0 right-0 h-screen overflow-y-auto bg-white p-4" ref={openedRef}>
-                        <X className="w-4 h-4 mb-4 text-common cursor-pointer" onClick={() => setJobsList(!jobsList)}/>
-                        {jobs != null && jobs.length > 0 && jobs.map((job, index: number) => (
-                                <JobCard
-                                className={`${index != jobs.length - 1 ? 'mb-3' : ''} ${selectedJob === job ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200 max-w-md`}
-                                key={job.id}
-                                onClick={() => setSelectedJob(job)}
-                                data={job}
-                                keyInfo={[
-                                    job.city_name || "Україна",
-                                    job.employment_name ?? "",
-                                    job.experience
-                                        ? `${job.experience.toString()} ${job.experience > 4 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
-                                        : "Без досвіду",
-                                    job.subcategory_name ?? job.category_name ?? "",
-                                ]}/>
-                            ))}
-                        <div className="fixed bottom-0  bg-white py-4 w-[416px]">
-                            <Button className="w-[416px]" onClick={() =>{handleResponseClick(), setJobsList(!jobsList)}}>Запропонувати вакансію</Button>
+                    <div className="overlay overflow-hidden absolute flex items-center top-0 right-0 h-full" ref={openedRef}>
+                        <div className="bg-white p-4 top-0 right-0 h-full ml-auto flex flex-col">
+                            <X className="w-4 h-4 mb-4 text-common cursor-pointer" onClick={() => setJobsList(!jobsList)}/>
+                            <div className="flex flex-col overflow-auto scrollbar">
+                                {loading && Array.from({ length: 3 }).map((_, index) => (
+                                    <JobCardSkeleton key={index} className={`${index != 2 ? 'mb-3' : ''} w-[448px]`}/>
+                                ))}
+                                {!loading && jobs != null && jobs.length > 0 && jobs.map((job, index: number) => (
+                                        <JobCard
+                                        className={`${index != jobs.length - 1 ? 'mb-3' : ''} ${selectedJob === job ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200 w-full max-w-md`}
+                                        key={job.id}
+                                        onClick={() => setSelectedJob(job)}
+                                        data={job}
+                                        keyInfo={[
+                                            job.city_name || "Україна",
+                                            job.employment_name ?? "",
+                                            job.experience
+                                                ? `${job.experience.toString()} ${job.experience > 4 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
+                                                : "Без досвіду",
+                                            job.subcategory_name ?? job.category_name ?? "",
+                                        ]}/>
+                                    ))}
+                            </div>
+                                <Button className="max-w-md w-full mt-4"
+                                    disabled={loading}
+                                    onClick={() =>{handleResponseClick("OFFER_PENDING"),
+                                    setJobsList(!jobsList)}}>
+                                        Запропонувати вакансію
+                                </Button>
                         </div>
                     </div> 
                 )

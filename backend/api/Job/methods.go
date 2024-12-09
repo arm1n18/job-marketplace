@@ -3,6 +3,7 @@ package job
 import (
 	"backend/handlers"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -28,7 +29,7 @@ func (j *Job) GetJobs(c *gin.Context, db *sql.DB) {
 		COALESCE(
 			ra.status,
 			ja.status
-		) AS status
+		) AS status, ja.id AS offer_id, ra.id AS application_id
 	FROM "Job" j
 	LEFT JOIN "Category" c ON j.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON j.subcategory_id = s.ID
@@ -38,7 +39,8 @@ func (j *Job) GetJobs(c *gin.Context, db *sql.DB) {
 	LEFT JOIN "Company" co ON u.ID = co.recruiter_id
 	LEFT JOIN "ResumeApplication" ra ON ra.job_id = j.ID AND ra.candidate_id = $1
 	LEFT JOIN "JobApplication" ja ON ja.job_id = j.ID AND ja.candidate_id = $1
-	WHERE TRUE`)
+	WHERE j.inactive = FALSE AND TRUE
+	`)
 
 	var queryParams []interface{}
 	queryParams = append(queryParams, userID)
@@ -105,7 +107,7 @@ func (j *Job) GetJobs(c *gin.Context, db *sql.DB) {
 		argID++
 	}
 
-	query += ` ORDER BY j.ID DESC
+	query += ` ORDER BY j.updated_at DESC
 	LIMIT 15`
 
 	rows, err := db.Query(query, queryParams...)
@@ -120,7 +122,8 @@ func (j *Job) GetJobs(c *gin.Context, db *sql.DB) {
 		job := Job{}
 		err := rows.Scan(&job.ID, &job.CreatorID, &job.Title, &job.Description, &job.Requirements, &job.Offer,
 			&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience, &job.EmploymentName,
-			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName, &job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status)
+			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName,
+			&job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status, &job.OfferID, &job.ApplicationID)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, job)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})
@@ -149,7 +152,7 @@ func (job *Job) GetJobByID(c *gin.Context, db *sql.DB) {
 			COALESCE(
 				ra.status,
 				a.status
-			) AS status
+			) AS status, a.id AS offer_id, ra.id AS application_id
 	FROM "Job" j
 	LEFT JOIN "Category" c ON j.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON j.subcategory_id = s.ID
@@ -159,14 +162,14 @@ func (job *Job) GetJobByID(c *gin.Context, db *sql.DB) {
 	LEFT JOIN "Company" co ON u.ID = co.recruiter_id
 	LEFT JOIN "ResumeApplication" ra ON ra.job_id = j.ID AND ra.candidate_id = $1
 	LEFT JOIN "JobApplication" a ON a.job_id = j.ID AND a.candidate_id = $1
-	WHERE j.ID = $2
+	WHERE j.ID = $2 AND j.inactive = FALSE
 	`
 
 	row := db.QueryRow(query, userID, id)
 	err := row.Scan(&job.ID, &job.CreatorID, &job.Title, &job.Description, &job.Requirements, &job.Offer,
 		&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience, &job.EmploymentName,
 		&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt,
-		&job.CompanyID, &job.CompanyName, &job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status)
+		&job.CompanyID, &job.CompanyName, &job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status, &job.OfferID, &job.ApplicationID)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -241,8 +244,8 @@ func (j *Job) CreateJob(c *gin.Context, db *sql.DB) {
 	insertQuery := `
     INSERT INTO "Job" ("creator_id", "title", "description", "requirements", "offer", 
     "category_id", "subcategory_id", "city_id", "experience", "employment_id", 
-    "salary_from", "salary_to", "company_id", "created_at", "updated_at") 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW()) 
+    "salary_from", "salary_to", "company_id", "inactive", "created_at", "updated_at") 
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE, NOW(), NOW()) 
     RETURNING id`
 
 	var nullableSubcategoryID, nullableCityID *int
@@ -268,5 +271,112 @@ func (j *Job) CreateJob(c *gin.Context, db *sql.DB) {
 		return
 	}
 
+	fmt.Print("Created job ID:", jobID)
 	c.JSON(http.StatusOK, gin.H{"id": jobID})
+}
+
+func (j *Job) DeleteJob(c *gin.Context, db *sql.DB) { // REMOVED, NOW USE DeactivateJob FOR ARCHIVATION
+	userID, _ := c.Get("userID")
+	idStr := c.Param("id")
+	id, _ := strconv.ParseInt(idStr, 10, 64)
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Printf("Помилка створення транзакції: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка створення транзакції"})
+		return
+	}
+
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`DELETE FROM "JobApplication" WHERE job_id = $1`, id)
+	if err != nil {
+		log.Printf("Помилка виконання запиту: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
+		return
+	}
+
+	_, err = tx.Exec(`DELETE FROM "ResumeApplication" WHERE job_id = $1`, id)
+	if err != nil {
+		log.Printf("Помилка виконання запиту: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
+		return
+	}
+
+	_, err = tx.Exec(`DELETE FROM "Job" WHERE id = $1 AND creator_id = $2`, id, userID)
+	if err != nil {
+		log.Printf("Помилка виконання запиту: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("Помилка завершення транзакції: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка завершення транзакції"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Вакансія успішно видалена"})
+}
+
+func (j *Job) DeactivateJob(c *gin.Context, db *sql.DB) {
+	userID, _ := c.Get("userID")
+	idStr := c.Param("id")
+	id, _ := strconv.ParseInt(idStr, 10, 64)
+
+	_, err := db.Exec(`UPDATE "Job" SET inactive = TRUE WHERE id = $1 AND creator_id = $2`, id, userID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Вакансія успішно видалена"})
+}
+
+func (j *Job) UpdateJob(c *gin.Context, db *sql.DB) {
+	var job JobCreate
+	userID, _ := c.Get("userID")
+
+	if err := c.ShouldBindJSON(&job); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var nullableSubcategoryName, nullableCityName *string
+	if job.SubcategoryName == nil || *job.SubcategoryName == "" {
+		nullableSubcategoryName = nil
+	} else {
+		nullableSubcategoryName = job.SubcategoryName
+	}
+
+	if job.CityName == nil || *job.CityName == "" {
+		nullableCityName = nil
+	} else {
+		nullableCityName = job.CityName
+	}
+
+	query := `UPDATE "Job"
+		SET 
+			"title" = $1, "description" = $2, "requirements" = $3, "offer" = $4, 
+			"category_id" = (SELECT id FROM "Category" WHERE "name" = $5), 
+			"subcategory_id" = (SELECT id FROM "Subcategory" WHERE "name" = $6),
+			"city_id" = (SELECT id FROM "City" WHERE "name" = $7), 
+			"experience" = $8, 
+			"employment_id" = (SELECT id FROM "Employment" WHERE "name" = $9), 
+			"salary_from" = $10, "salary_to" = $11, "updated_at" = NOW()
+		WHERE "id" = $12 AND "creator_id" = $13
+	`
+
+	_, err := db.Exec(query, job.Title, job.Description, job.Requirements,
+		job.Offer, job.CategoryName, nullableSubcategoryName, nullableCityName,
+		job.Experience, job.EmploymentName, job.SalaryFrom, job.SalaryTo, job.ID, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		log.Print(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Job updated successfully"})
 }

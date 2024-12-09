@@ -1,6 +1,8 @@
 package auth
 
-import "backend/database"
+import (
+	"backend/database"
+)
 
 type Auth struct{}
 

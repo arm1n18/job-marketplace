@@ -2,9 +2,7 @@
 
 import { Container } from "@/components/Container";
 import { useAuth } from "@/components/hook/AuthContext";
-import { CandidateApplications, CandidateOffers } from "@/components/shared/Inbox";
-import { RecruiterApplications } from "@/components/shared/Inbox/RecruiterApplications";
-import { RecruiterOffers } from "@/components/shared/Inbox/RecruiterOffers";
+import { CandidateApplications, CandidateOffers, RecruiterOffers, RecruiterApplications } from "@/components/shared/Inbox";
 import { NothingFound } from "@/components/shared/nothingFound";
 import { Input } from "@/components/ui/input";
 import FetchDataService from "@/services/FetchDataService";
@@ -18,12 +16,12 @@ export interface Data {
 }
 
 export default function InboxPage() {
+    const { role } = useAuth();
     const [search, setSearch] = useState("");
     const [section, setSection] = useState(0);
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<Data | null>(null);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-    const { role } = useAuth();
     const sectionNames = [`Відгуки ${data?.applications ? data.applications?.length : '0'}`, `Пропозиції ${data?.offers ? data.offers?.length : '0'}`, "Пропозиції"];
 
     useEffect(() => {
@@ -37,7 +35,11 @@ export default function InboxPage() {
             <h1 className="text-title-dark my-12">{sectionNames[section] }<span className="text-title-blue">{}</span></h1>
                     <div className="flex gap-4 w-full rounded-md">
                         <div className="flex gap-2">
-                            <div className={`${section == 0 ? "filters-block-selected" : "filters-block"} flex w-full`} onClick={() => {setSection(0), setSelectedJob(data?.applications?.[0] ?? null)}}>Відгуки</div>
+                            <div className={`${section == 0 ? "filters-block-selected" : "filters-block"} flex w-full`}
+                                onClick={() => {setSection(0),
+                                setSelectedJob(data?.applications?.[0] ?? null)
+                            }
+                            }>Відгуки</div>
                             <div className={`${section == 1 ? "filters-block-selected" : "filters-block"} flex w-full`} onClick={() => {setSection(1), setSelectedJob(data?.offers?.[0] ?? null)}}>Пропозиції</div>
                         </div>
                         <div className="relative flex-grow">
@@ -98,7 +100,6 @@ export default function InboxPage() {
                                     ) : (
                                         <RecruiterOffers
                                             setData={setData}
-                                            data={data}
                                             setSelectedResume={setSelectedJob}
                                             selectedResume={selectedJob}
                                             offers={data?.offers ?? []}

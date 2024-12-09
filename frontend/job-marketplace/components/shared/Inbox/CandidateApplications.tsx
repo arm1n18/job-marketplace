@@ -60,6 +60,8 @@ export const CandidateApplications: React.FC<ApplicationsProps> = ({ setSelected
                                 data={selectedJob}
                                 onApplyClick={() => {}}
                                 jobStatus={selectedJob.status.String}
+                                route="application"
+                                responseID={selectedJob.application_id}
                                 keywords={[
                                 { id: 1, name: 'Embedded' },
                                 { id: 2, name: 'Linux' },

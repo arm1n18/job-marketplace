@@ -2,13 +2,13 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 export default class JWTService {
-    private retryCount = 0;
+    private static retryCount = 0;
 
-    public getAccessToken() {
+    public static getAccessToken() {
         return localStorage.getItem("access_token") ?? ""
     }
 
-    public async handleError(error: any, retryRequest: Function) {
+    public static async handleError(error: any, retryRequest: Function) {
         if(error.response) {
             if(error.response.status === 409) {
                 toast.warning(error.response?.data.message);
@@ -28,7 +28,7 @@ export default class JWTService {
         }
     }
 
-    private async refreshAccessToken() {
+    private static async refreshAccessToken() {
         // console.log("Old Token:", this.getAccessToken());
         try {
             const response = await axios.get(`http://192.168.0.106:8080/auth/refresh-token`, {

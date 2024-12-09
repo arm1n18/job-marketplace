@@ -1,20 +1,7 @@
 import FormService from "@/services/FormService";
-import { useRouter } from "next/navigation";
+import { FormSubmit } from "@/types";
 
-interface FormSubmitProps {
-    e: React.FormEvent<HTMLFormElement>;
-    url: string;
-    redirectURL?: string;
-    dataToSend: {[key: string]: string | number | File};
-    setLoading: (loading: boolean) => void;
-    setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
-    validationZod: any;
-    router: ReturnType<typeof useRouter>;
-    message: string;
-}
-
-
-export const useFormSubmit = async (props: FormSubmitProps) : Promise<void> => {
+export const useFormSubmit = async (props: FormSubmit) : Promise<void> => {
     const { e, url, dataToSend, router, validationZod, setErrors, message, redirectURL } = props;
     const result  = validationZod.safeParse(dataToSend);
     if(!result.success) {

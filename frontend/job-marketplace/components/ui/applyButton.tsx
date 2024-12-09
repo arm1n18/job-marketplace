@@ -24,7 +24,7 @@ export const ApplyButton: React.FC<Props> = ({roleAccess, status, className, loa
 
     if (role === roleAccess && loggedIn) {
         return(
-            <Button className={cn("", className)} onClick={() => onClick()} disabled={loading || status !== ""}>
+            <Button className={cn("", className)} onClick={() => onClick()} disabled={loading || status !== ""} size="sm">
                 {loading ? <div className="flex gap-2 ">
                     <LoadingSVG />Зачекайте</div> : title}
             </Button>

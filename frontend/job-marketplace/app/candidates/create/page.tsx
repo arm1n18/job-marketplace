@@ -2,35 +2,27 @@
 
 import { categories, cities, employment } from "@/components/consts/filters-consts";
 import { Container } from "@/components/Container";
-import { Button } from "@/components/ui/button";
-import { CheckBoxesSection } from "@/components/ui/checkBoxesSection";
-import { FilterDropDown } from "@/components/ui/filterDropDown";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { Textarea } from "@/components/ui/textarea";
+import { Button, Input, Textarea, Slider, CheckBoxesSection, FilterDropDown } from "@/components/ui";
 import { useState } from "react";
 import { validationCreateResume } from "@/components/shared/validation-form";
 import { Asterisk, CircleAlert } from "lucide-react";
-import { useFormSubmit } from "@/components/hook/useFormSubmit";
-import { useAuth } from "@/components/hook/AuthContext";
+import { useFormSubmit, useAuth } from "@/components/hook";
 import { useRouter } from "next/navigation";
+import { ResumeCreate } from "@/types";
 
 export default function CreateJob() {
     const { email, id} = useAuth();
     const router = useRouter();
 
     const [minValue, setMinValue] = useState([0]);
-    const [formData, setFormData] = useState({ title: '', category_name: '', subcategory_name: '',
-    salary: 0, city: '', employment_name: '', experience: 0, work_experience: '', achievements: '', email: email ?? '', id: id ?? '' });
+    const [formData, setFormData] = useState<ResumeCreate>({ title: '', category_name: '', subcategory_name: '',
+    salary: 0, city_name: '', employment_name: '', experience: 0, work_experience: '', achievements: '', email: email!, id: id! });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
 
-    const handleTextSubmit = (value: string | number, fieldName: string) => {
-        setFormData({ ...formData, [fieldName]: value});
-    };
-
-    const handleGroupClick = (group: string, subgroup: string) => {
-        setFormData({ ...formData, "category_name": group, "subcategory_name": subgroup});
+    const handleChange = (fields: Partial<ResumeCreate>) => {
+        console.log(formData);
+        setFormData({...formData, ...fields});
     };
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
@@ -40,7 +32,7 @@ export default function CreateJob() {
         await useFormSubmit({
             e, 
             url: "candidates/",
-            dataToSend: formData,
+            dataToSend: formData as { [key: string]: string | number | File; },
             setLoading: () => {},
             validationZod: validationCreateResume,
             setErrors,
@@ -61,7 +53,7 @@ export default function CreateJob() {
                         <div className="lg:w-[464px]">
                             <Input className={`w-full ${errors.title && "border-red-500"} bg-[#F9FAFB]`}
                                 placeholder="Наприклад: JavaScript / Front-End розробник"
-                                onChange={(e) => handleTextSubmit(e.target.value, "title")}
+                                onChange={(e) => handleChange({title: e.target.value})}
                             />
                             {errors.title && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.title}</p>}
                         </div>
@@ -72,7 +64,7 @@ export default function CreateJob() {
                             <FilterDropDown
                                 title={"JavaScript / Front-End"}
                                 categories = {categories}
-                                setSelectedGroup={handleGroupClick}
+                                setSelectedGroup={(group, subgroup) => handleChange({ category_name: group, subcategory_name: subgroup })}
                             />
                             {errors.category_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.category_name}</p>}
                         </div>
@@ -91,7 +83,7 @@ export default function CreateJob() {
                                 max={10}
                                 step={0.5}
                                 className="w-full"
-                                onValueChange={(minValue) => {setMinValue(minValue), handleTextSubmit(minValue[0], "experience")}}
+                                onValueChange={(minValue) => {setMinValue(minValue), handleChange({experience: minValue[0]})}}
                             />
                         </div>
                         </div>
@@ -103,7 +95,7 @@ export default function CreateJob() {
                                 <div className={`${errors.salary ? "bg-error" : "bg-gray-selected"} w-16 flex items-center justify-center rounded-l-md filters-text`}>$</div>
                                 <Input className={`w-28 bg-[#F9FAFB] rounded-l-none border-l-0 ${errors.salary && "bg-error"}`}
                                     placeholder="1500"
-                                    onChange={(e) => handleTextSubmit(Number(e.target.value), "salary")}
+                                    onChange={(e) => handleChange({salary: Number(e.target.value)})}
                                 />
                                 <p className="text-common-dark my-auto ml-2">/ на місяць</p>
                             </div>
@@ -116,7 +108,7 @@ export default function CreateJob() {
                         <FilterDropDown
                                 title={"Місто"}
                                 categories = {cities}
-                                setSelectedGroup={(e) => handleTextSubmit(e, "city")}
+                                setSelectedGroup={(e) => handleChange({city_name: e})}
                             />
                         </div>
                     </div>
@@ -124,7 +116,7 @@ export default function CreateJob() {
                         <legend className="text-common-dark max-w-32 max-lg:mb-2">Формат</legend>
                         <div className="lg:lg:w-[464px]">
                             <CheckBoxesSection title={employment}
-                                setSelectedFormat={(e) => handleTextSubmit(e, "employment_name")}
+                                 setSelectedFormat={(e) => handleChange({employment_name: e})}
                             />
                             {errors.employment_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.employment_name}</p>}
                         </div>
@@ -138,10 +130,10 @@ export default function CreateJob() {
                         </div>
                         <div className="lg:w-[464px]">
                             <Textarea className={`${errors.work_experience && "border-red-500"} bg-[#F9FAFB]`} placeholder="Досвід роботи"
-                                onChange={(e) => handleTextSubmit(e.target.value, "work_experience")}
+                                onChange={(e) => handleChange({work_experience: e.target.value})}
                             />
                             {errors.work_experience && <p className="text-red-500 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.work_experience}</p>}
-                            <div className="filters-text">{formData.work_experience.length}/2000</div>
+                            <div className="filters-text">{(formData.work_experience ?? "").length}/2000</div>
                         </div>
                     </div>
                     <div className="grid mb-12 lg:grid-cols-2">
@@ -154,10 +146,10 @@ export default function CreateJob() {
                         </div>
                         <div className="lg:w-[464px]">
                             <Textarea className="bg-[#F9FAFB]" placeholder="Досягнення"
-                                onChange={(e) => handleTextSubmit(e.target.value, "achievements")}
+                                 onChange={(e) => handleChange({achievements: e.target.value})}
                             />
                             {errors.achievements && <p className="text-red-500 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.achievements}</p>}
-                            <div className="filters-text">{formData.achievements.length}/2000</div>
+                            <div className="filters-text">{(formData.achievements ?? "").length}/2000</div>
                         </div>
                     </div>
                     <div className="flex lg:justify-end gap-4">

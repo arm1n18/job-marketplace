@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
-import { Resume } from "./ResumeDetailsTypes";
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { KeywordsType } from "@/types/types";
 import Link from "next/link";
+import { Resume } from "@/types";
 
 interface Props{
     data: Resume;
@@ -37,7 +37,7 @@ export const ResumeCard: React.FC<Props> = ({
                 </span>
             </div>
             <p className="text-common-sm leading-none mb-3">Україна 
-                {data.city_name && ` • ${data.city_name}`} • {data.experience} {data.experience > 4 ? "років" : (data.experience > 1 ? "роки" : "рік")} досвіду
+                {data.city_name && ` • ${data.city_name}`} • {data.experience} {data.experience! > 4 ? "років" : (data.experience! > 1 ? "роки" : "рік")} досвіду
                 • {data.subcategory_name || data.category_name}
                 </p>
 
@@ -51,7 +51,7 @@ export const ResumeCard: React.FC<Props> = ({
                 </p> */}
             </div>
             {
-                data.work_experience?.length > 1023 ? 
+                (data.work_experience ?? "").length > 1023 ? 
                     <span className="text text-common-sm-blue" onClick={handleExpand}>{isExpanded ?
                         <span className="flex items-center">Приховати <ChevronUp className="size-4 ml-1 mt-[2px]" /></span>
                         : <span className="flex items-center">Детальніше <ChevronDown className="size-4 ml-1 mt-[2px]" /></span>

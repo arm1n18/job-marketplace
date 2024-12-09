@@ -1,8 +1,7 @@
 'use client';
 
 import { Container } from "@/components/Container";
-import { useQueryParams } from "@/components/hook/useQueryParams";
-import { useWindowWidth } from "@/components/hook/useWindowWidth";
+import { useQueryParams, useWindowWidth } from "@/components/hook";
 import { SearchInput } from "@/components/shared";
 import { filtersList } from "@/components/shared/filtersList";
 import { FiltersSection } from "@/components/shared/FiltersSection";
@@ -11,7 +10,6 @@ import { MobileFiltersSection } from "@/components/shared/MobileComponents/Mobil
 import { NothingFound } from "@/components/shared/nothingFound";
 import { JobCardSkeleton } from "@/components/shared/Skeletons/JobCardSkeleton";
 import { JobMainCardSkeleton } from "@/components/shared/Skeletons/JobMainCardSkeleton";
-import FetchDataService from "@/services/FetchDataService";
 import JobsService from "@/services/JobsService";
 import { FiltersType } from "@/types/filters.type";
 import { Job } from "@/types/job.type";
@@ -29,7 +27,6 @@ export default function Jobs() {
     const searchFilter = searchParams.get('search')
     const [filters, setFilters] = useState<FiltersType>(filtersList(searchParams));
     const screenWidth = useWindowWidth();
-
 
     const updateFilters = (updatedFilters: Partial<FiltersType>) => {
         setFilters((filters) => ({
@@ -83,7 +80,7 @@ export default function Jobs() {
                 <div className="flex flex-col md:mr-5">
                     {loading ? (
                          Array.from({ length: 7 }).map((_, index) => (
-                            <JobCardSkeleton key={index} className={`${index != 6 ? 'mb-5' : ''}`}/>
+                            <JobCardSkeleton key={index} className={`${index != 6 ? 'mb-3' : ''}`}/>
                         ))
                     ) : (
                         jobs != null && jobs.length > 0 && jobs.map((job, index: number) => (
@@ -113,8 +110,11 @@ export default function Jobs() {
                         <JobMainCard
                             className="h-screen overflow-auto scrollbar top-6 hidden md:block"
                             data={selectedJob}
+                            isMainPage={false}
                             onApplyClick={handleResponse}
                             jobStatus={selectedJob.status.String}
+                            route={selectedJob.application_id ? `offer` : `application`}
+                            responseID={selectedJob.application_id ? selectedJob.application_id : selectedJob.offer_id}
                             keywords={[
                             { id: 1, name: 'Embedded' },
                             { id: 2, name: 'Linux' },

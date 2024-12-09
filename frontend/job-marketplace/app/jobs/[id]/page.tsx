@@ -4,7 +4,6 @@ import { Container } from "@/components/Container";
 import { JobMainCard, SimilarJobs } from "@/components/shared";
 import { NothingFound } from "@/components/shared/nothingFound";
 import { JobMainCardSkeleton } from "@/components/shared/Skeletons";
-import FetchDataService from "@/services/FetchDataService";
 import JobsService from "@/services/JobsService";
 import { Job } from "@/types";
 import { useEffect, useState } from "react";
@@ -56,6 +55,9 @@ export default function JobsDetailPage({ params: { id } }: { params: { id: numbe
                 { id: 5, name: 'Python' },
                 { id: 6, name: 'Golang' },
                 ]}
+                route={job.application_id ? `offer` : `application`}
+                responseID={job.application_id ? job.application_id : job.offer_id}
+                isMainPage={true}
                 onApplyClick={handleResponse}
                 jobStatus={job.status.String}
                 />

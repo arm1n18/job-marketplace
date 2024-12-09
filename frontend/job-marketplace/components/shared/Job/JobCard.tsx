@@ -43,7 +43,7 @@ export const JobCard: React.FC<Props> = ({ data, onClick, keyInfo, className }) 
 
             <div>
                 <span className="text-salary leading-none">
-                    {data.salary_from && `від $${data.salary_from} `}
+                    {data.salary_from != 0 && `від $${data.salary_from} `}
                     {data.salary_to != 0 && data.salary_to && `до $${data.salary_to}`}
                 </span>
             </div>

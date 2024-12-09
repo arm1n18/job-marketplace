@@ -21,5 +21,12 @@ export interface Job {
   website?: string;
   created_at?: string;
   status?: any;
+  inactive?: boolean;
   creator_id?: number;
+  application_id?: number;
+  offer_id?: number;
+}
+
+export interface JobCreate extends Job {
+  email?: string;
 }

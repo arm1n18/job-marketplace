@@ -3,9 +3,7 @@
 import { Container } from "@/components/Container";
 import { useAuth } from "@/components/hook/AuthContext";
 import { validationCreateCompany } from "@/components/shared/validation-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Button, Input, Textarea } from "@/components/ui";
 import CompanyService from "@/services/CompanyService";
 import { Asterisk, CircleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";

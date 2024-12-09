@@ -3,7 +3,6 @@
 import { Container } from "@/components/Container";
 import { NothingFound } from "@/components/shared/nothingFound";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Resume } from "@/types";
 import { ResumeMainCardSkeleton } from "@/components/shared/Skeletons";
 import { ResumeMainCard } from "@/components/shared/Candidate";

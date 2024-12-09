@@ -23,7 +23,7 @@ func GetInboxCandidateApplications(c *gin.Context, db *sql.DB) []job.Job {
 		j.salary_from, j.salary_to, j.created_at, j.updated_at,
 		co.ID AS CompanyID, co.company_name AS CompanyName,
 		co.about_us AS AboutUs, co.image_url AS ImageUrl, co.web_site AS WebSite,
-		a.status AS status
+		a.status AS status, a.id AS offer_id
 	FROM "Job" j
 	LEFT JOIN "Category" c ON j.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON j.subcategory_id = s.ID
@@ -32,7 +32,8 @@ func GetInboxCandidateApplications(c *gin.Context, db *sql.DB) []job.Job {
 	LEFT JOIN "User" u ON j.creator_id = u.ID
 	LEFT JOIN "Company" co ON u.ID = co.recruiter_id
 	JOIN "JobApplication" a ON a.job_id = j.ID
-	WHERE a.candidate_id = $1`)
+	WHERE a.candidate_id = $1 AND j.inactive = FALSE
+	`)
 
 	rows, err := db.Query(query, userID)
 	if err != nil {
@@ -45,7 +46,7 @@ func GetInboxCandidateApplications(c *gin.Context, db *sql.DB) []job.Job {
 		job := job.Job{}
 		err := rows.Scan(&job.ID, &job.CreatorID, &job.Title, &job.Description, &job.Requirements, &job.Offer,
 			&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience, &job.EmploymentName,
-			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName, &job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status)
+			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName, &job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status, &job.ApplicationID)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, job)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})
@@ -70,7 +71,7 @@ func GetInboxCandidateOffers(c *gin.Context, db *sql.DB) []job.Job {
 		j.salary_from, j.salary_to, j.created_at, j.updated_at,
 		co.ID AS CompanyID, co.company_name AS CompanyName,
 		co.about_us AS AboutUs, co.image_url AS ImageUrl, co.web_site AS WebSite,
-		a.status AS status
+		a.status AS status, a.id AS application_id
 	FROM "Job" j
 	LEFT JOIN "Category" c ON j.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON j.subcategory_id = s.ID
@@ -92,7 +93,8 @@ func GetInboxCandidateOffers(c *gin.Context, db *sql.DB) []job.Job {
 		job := job.Job{}
 		err := rows.Scan(&job.ID, &job.CreatorID, &job.Title, &job.Description, &job.Requirements, &job.Offer,
 			&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience, &job.EmploymentName,
-			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName, &job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status)
+			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName,
+			&job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status, &job.OfferID)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, job)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})
@@ -115,7 +117,7 @@ func GetInboxRecruiterApplications(c *gin.Context, db *sql.DB) []ResumeRespond {
 	       ct.Name AS CityName,
 	       r.Experience, e.Name AS EmploymentName,
 	       r.salary, r.created_at, r.updated_at,
-		   a.status AS status, j.Title, j.ID
+		   a.status AS status, j.Title, j.ID, a.id AS application_id
 	FROM "Resume" r
 	LEFT JOIN "Category" c ON r.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON r.subcategory_id = s.ID
@@ -125,7 +127,7 @@ func GetInboxRecruiterApplications(c *gin.Context, db *sql.DB) []ResumeRespond {
 	LEFT JOIN "ResumeApplication" a ON a.resume_id = r.ID
 	LEFT JOIN "Job" j ON j.ID = a.job_id
 	WHERE a.recruiter_id = $1
-	AND j.ID = a.job_id`)
+	AND j.ID = a.job_id AND j.inactive = FALSE`)
 
 	rows, err := db.Query(query, userID)
 	if err != nil {
@@ -139,7 +141,7 @@ func GetInboxRecruiterApplications(c *gin.Context, db *sql.DB) []ResumeRespond {
 		err := rows.Scan(&resume.ID, &resume.CreatorID, &resume.Title, &resume.WorkExperience,
 			&resume.Achievements, &resume.CategoryName, &resume.SubcategoryName, &resume.CityName,
 			&resume.Experience, &resume.EmploymentName, &resume.Salary, &resume.CreatedAt,
-			&resume.UpdatedAt, &resume.Status, &resume.JobTitle, &resume.JobID)
+			&resume.UpdatedAt, &resume.Status, &resume.JobTitle, &resume.JobID, &resume.ApplicationID)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, resume)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})
@@ -161,7 +163,7 @@ func GetInboxRecruiterOffers(c *gin.Context, db *sql.DB) []ResumeRespond {
 		r.Achievements, c.Name AS CategoryName, s.Name AS SubcategoryName,
 		ct.Name AS CityName, r.Experience, e.Name AS EmploymentName,
 		r.salary, r.created_at, r.updated_at, ja.status AS status, 
-    	j.Title AS JobTitle,  j.ID AS JobID
+    	j.Title AS JobTitle,  j.ID AS JobID, ja.id AS offer_id
 	FROM "Resume" r
 	LEFT JOIN "Category" c ON r.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON r.subcategory_id = s.ID
@@ -170,7 +172,7 @@ func GetInboxRecruiterOffers(c *gin.Context, db *sql.DB) []ResumeRespond {
 	LEFT JOIN "User" u ON r.creator_id = u.ID
 	LEFT JOIN "JobApplication" ja ON ja.candidate_id = r.creator_id
 	LEFT JOIN "Job" j ON ja.job_id = j.ID
-	WHERE ja.recruiter_id = $1;
+	WHERE ja.recruiter_id = $1 AND j.inactive = FALSE
 	`)
 
 	rows, err := db.Query(query, userID)
@@ -185,7 +187,7 @@ func GetInboxRecruiterOffers(c *gin.Context, db *sql.DB) []ResumeRespond {
 		err := rows.Scan(&resume.ID, &resume.CreatorID, &resume.Title, &resume.WorkExperience,
 			&resume.Achievements, &resume.CategoryName, &resume.SubcategoryName, &resume.CityName,
 			&resume.Experience, &resume.EmploymentName, &resume.Salary, &resume.CreatedAt,
-			&resume.UpdatedAt, &resume.Status, &resume.JobTitle, &resume.JobID)
+			&resume.UpdatedAt, &resume.Status, &resume.JobTitle, &resume.JobID, &resume.OfferID)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, resume)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})

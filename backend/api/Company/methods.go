@@ -17,6 +17,55 @@ import (
 	_ "github.com/lib/pq"
 )
 
+func (co *CompanyResponse) GetCompaniesList(c *gin.Context, db *sql.DB) {
+	var companies []CompaniesList
+	params := handlers.GetSearchParams(c)
+
+	query := `SELECT 
+		co.ID AS CompanyID, co.company_name AS CompanyName,
+		co.about_us AS AboutUs, co.image_url AS ImageUrl,
+		COUNT(j.id) AS TotalJobs,
+		CASE 
+        	WHEN COUNT(j.id) > 0 THEN AVG((j.salary_from + j.salary_to) / 2.0)
+        ELSE 0
+    END AS AvgSalary
+	FROM "Company" co
+	LEFT JOIN "Job" j ON co.ID = j.company_id
+	WHERE TRUE
+	`
+
+	var queryParams []interface{}
+
+	if params.Search != "" {
+		query += `AND (co.company_name ILIKE '%' || $1 || '%')`
+		queryParams = append(queryParams, params.Search)
+	}
+
+	query += `GROUP BY co.ID`
+
+	rows, err := db.Query(query, queryParams...)
+	if err != nil {
+		log.Printf("Помилка виконання запиту: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		company := CompaniesList{}
+		err := rows.Scan(&company.ID, &company.CompanyName, &company.AboutUs, &company.ImageUrl,
+			&company.TotalJobs, &company.AverageSalary)
+		if err != nil {
+			log.Printf("Error scanning row: %v, Data: %+v\n", err, company)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning companies"})
+			return
+		}
+		companies = append(companies, company)
+	}
+
+	c.JSON(http.StatusOK, companies)
+}
+
 func (co *CompanyResponse) GetCompanyInfo(c *gin.Context, db *sql.DB) {
 	var company Company
 	params := handlers.GetSearchParams(c)
@@ -33,12 +82,12 @@ func (co *CompanyResponse) GetCompanyInfo(c *gin.Context, db *sql.DB) {
 	companyName := strings.ReplaceAll(name, "-", " ")
 
 	query := `
-	SELECT
-	    co.ID AS CompanyID, co.company_name AS CompanyName,
-		co.about_us AS AboutUs, co.image_url AS ImageUrl, co.web_site AS WebSite,
-		co.linkedin AS LinkedIn, co.facebook AS Facebook
-	FROM "Company" co
-	WHERE LOWER(co.company_name) = LOWER($1)
+		SELECT
+			co.ID AS CompanyID, co.company_name AS CompanyName,
+			co.about_us AS AboutUs, co.image_url AS ImageUrl, co.web_site AS WebSite,
+			co.linkedin AS LinkedIn, co.facebook AS Facebook
+		FROM "Company" co
+		WHERE LOWER(co.company_name) = LOWER($1)
 	`
 
 	row := db.QueryRow(query, companyName)

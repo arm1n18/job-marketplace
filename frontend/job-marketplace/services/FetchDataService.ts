@@ -17,12 +17,8 @@ export default class FetchDataService {
     private setLoading: (loading: boolean) => void;
     private setData: any;
     private setSelectedData?: (data: any) => void;
-
-
-    private JWTService: JWTService
     
     constructor(fetchData: FetchData) {
-        this.JWTService = new JWTService();
         this.url = fetchData.url;
         this.doubleData = fetchData.doubleData;
         this.params = fetchData.params;
@@ -39,10 +35,9 @@ export default class FetchDataService {
             }
             const response = await axios.get(fullUrl, {
                 headers: {
-                    Authorization: this.JWTService.getAccessToken() ? `Bearer ${this.JWTService.getAccessToken()}` : undefined,
+                    Authorization: JWTService.getAccessToken() ? `Bearer ${JWTService.getAccessToken()}` : undefined,
                 },  
             });
-            
 
             if(this.doubleData) {
                 if (this.setSelectedData) {
@@ -70,7 +65,7 @@ export default class FetchDataService {
                 }
             }
         } catch (error: any) {
-            return this.JWTService.handleError(error, () => this.fetchData());
+            return JWTService.handleError(error, () => this.fetchData());
         }
     }
 

@@ -64,7 +64,7 @@ export const Filter: React.FC<Props> = ({ title, categories, minWidth, className
                 <ChevronUp strokeWidth={1.5} size={24} className={`${!isOpen ? 'rotate-180' : ''}`}/>
             </div>
             {isOpen && (
-                <ul className="filters-list">
+                <ul className="filters-list top-12">
                     {categories!=null && Array.isArray(categories) && categories.map((category, index) => (
                         <li key={index} className={`${selected.group != '' && selected.group === category.name ? `filter-item-selected` : `filter-item`} flex justify-between items-center mb-1 ${minWidth}`}
                             onClick={() => {

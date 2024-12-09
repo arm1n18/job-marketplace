@@ -28,7 +28,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <AuthProvider isLoggedIn={loggedIn != null ? true : false}> 
       <html lang="en" className={inter.className}>
         <head>
-          {/* <meta name="theme-color" content="#1C64EE" /> */}
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/images/favicon/favicon.png" />
         </head>

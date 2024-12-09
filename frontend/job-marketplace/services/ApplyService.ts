@@ -24,8 +24,9 @@ export default class ApplyService {
     }
 
     public async respondTo() {
+        console.log(this.data);
         try {
-            const response = await axios.post(`http://192.168.0.106:8080/response`, this.data, {
+            const response = await axios.post(`http://192.168.0.106:8080/response/`, this.data, {
                 headers: {
                     Authorization: this.getAccessToken() ? `Bearer ${this.getAccessToken()}` : undefined,
                 },
