@@ -9,10 +9,11 @@ interface Props {
     defaultValue?: string | null;
     defaultSubValue?: string | null;
     setSelectedGroup?: (group: string | '', subgroup: string | '') => void;
+    disabled?: boolean
     className ?: string;
 }
 
-export const FilterDropDown: React.FC<Props> = ({className, title, categories, setSelectedGroup, defaultValue, defaultSubValue}) => {
+export const FilterDropDown: React.FC<Props> = ({className, title, categories, setSelectedGroup, defaultValue, defaultSubValue, disabled}) => {
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [selected, setSelected] = useState<{ group: string; subgroup: string }>({group: '', subgroup: ''});
@@ -49,15 +50,15 @@ export const FilterDropDown: React.FC<Props> = ({className, title, categories, s
     return (
         <div className={cn("relative", className)} ref={openedRef}>
             <div
-                className={`${selected.group ? `filters-block-selected-two` : `filters-block-two`} ${isOpen ? `filters-block-selected-two` : ''} flex gap-2`}
-                onClick={() => setIsOpen(!isOpen)}
+                className={`${selected.group ? `filters-block-selected-two` : `filters-block-two`} ${isOpen ? `filters-block-selected-two` : ''} flex gap-2 ${disabled && 'cursor-not-allowed opacity-50'}`}
+                onClick={() => {!disabled && setIsOpen(!isOpen)}}
             >
                 {selected.group ? (selected.subgroup ? selected.group + (selected.subgroup ? ` → ${selected.subgroup}` : '') : selected.group) : title}
 
                 <ChevronUp size={24} className={`size-4 ml-1 mt-1 ${!isOpen ? 'rotate-180' : ''}`}/>
             </div>
             {isOpen && (
-                <ul className={cn("filters-list two", className)}>
+                <ul className={cn("filters-list top-12 two", className)}>
                 {categories != null && Array.isArray(categories) && categories.map((category, index) => (
                     <React.Fragment key={index}>
                         <li key={index} className={`${selected.group != '' && selected.group && selected.subgroup == '' && selected.group === category.name ? `filter-item-selected` : `filter-item`} flex justify-between items-center mb-1`}

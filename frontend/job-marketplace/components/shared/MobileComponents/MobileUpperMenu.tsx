@@ -28,7 +28,7 @@ export const MobileUpperMenu: React.FC<Props> = ({ openedMobileMenu, setOpenedMo
                 </Link>
 
                 <ul className="">
-                    <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/jobs">Пошук вакансій</Link></li>
+                    <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href={`${role == 'RECRUITER' ? '/jobs/my-vacancies' : '/jobs'}`}>Пошук вакансій</Link></li>
                     <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/candidates">Пошук кандидатів</Link></li>
                     <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/inbox">Відгуки</Link></li>
                     {role === "RECRUITER" &&

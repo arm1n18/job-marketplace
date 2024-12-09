@@ -27,20 +27,12 @@ type Job struct {
 	ImageUrl        string         `json:"image_url"`
 	WebSite         string         `json:"website"`
 	Status          sql.NullString `json:"status"`
+	ApplicationID   *uint          `json:"application_id"`
+	OfferID         *uint          `json:"offer_id"`
 }
 
 type JobCreate struct {
-	ID              uint    `json:"id"`
-	Email           string  `json:"email"`
-	Title           string  `json:"title"`
-	CategoryName    string  `json:"category_name"`
-	SubcategoryName *string `json:"subcategory_name"`
-	CityName        *string `json:"city"`
-	Experience      float64 `json:"experience"`
-	EmploymentName  string  `json:"employment_name"`
-	SalaryFrom      uint    `json:"salary_from"`
-	SalaryTo        uint    `json:"salary_to"`
-	Description     string  `json:"description"`
-	Requirements    string  `json:"requirements"`
-	Offer           string  `json:"offer"`
+	Job
+	Email    string  `json:"email"`
+	CityName *string `json:"city"`
 }

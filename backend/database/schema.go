@@ -90,6 +90,8 @@ type Job struct {
 	EmploymentID uint       `json:"employment_id" gorm:"index"`
 	Employment   Employment `json:"employment" gorm:"foreignKey:EmploymentID"`
 
+	Inactive bool `json:"inactive"`
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -125,6 +127,8 @@ type Resume struct {
 
 	EmploymentID uint       `json:"employment_id" gorm:"index"`
 	Employment   Employment `json:"employment" gorm:"foreignKey:EmploymentID"`
+
+	Inactive bool `json:"inactive"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -2,7 +2,6 @@ import { useAuth } from "../hook/AuthContext";
 import { Button } from "./button"
 import { cn } from "@/lib/utils";
 import { LoadingSVG } from "./loadingSVG";
-import { useEffect, useRef, useState } from "react";
 
 interface Props {
     roleAccess: string;

@@ -3,8 +3,7 @@
 import { Container } from "@/components/Container";
 import { useAuth } from "@/components/hook/AuthContext";
 import { validationFormAuth } from "@/components/shared/validation-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button, Input} from "@/components/ui";
 import AuthService from "@/services/AuthService";
 import { CircleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";

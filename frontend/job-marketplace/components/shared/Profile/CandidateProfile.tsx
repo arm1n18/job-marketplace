@@ -44,7 +44,7 @@ export const CandidateProfile: React.FC<Props> = ({ data, setData }) => {
     
     return (
         <>
-            {data == undefined && (
+            {data !== undefined && (
                 <div className="max-md:w-full max-w-[976px] rounded-md bg-[#FEF3EA] border border-opacity-30 border-[#E7994B] p-2 mb-6">
                     <h1 className="text-center font-bold text-[#AE7236]">Профіль потрбіно заповнити.</h1>
                     <p className="text-center text-[#AE7236]">Перед початком пошуку ви повинні заповнити свій профіль, щоб він

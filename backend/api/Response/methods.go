@@ -2,6 +2,7 @@ package response
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -26,9 +27,7 @@ func ApplyForJob(c *gin.Context, applyData *ApplyData, db *sql.DB, status string
 	}
 
 	query := `INSERT INTO "JobApplication" ("job_id", "recruiter_id", "candidate_id", "status", "created_at", "updated_at")
-				VALUES ($1, $2, $3, $4, NOW(), NOW())
-				ON CONFLICT ("job_id", "recruiter_id", "candidate_id") DO NOTHING;
-				`
+				VALUES ($1, $2, $3, $4, NOW(), NOW())`
 
 	_, err := db.Exec(query, applyData.ApplyingForId, applyData.RecruiterID, applyData.CandidateID, status)
 	if err != nil {
@@ -91,6 +90,30 @@ func ApplyForResume(c *gin.Context, applyData *ApplyData, db *sql.DB, status str
 	c.JSON(http.StatusOK, gin.H{"message": "Resume applied successfully"})
 }
 
+func RespondResume(c *gin.Context, applyData *ApplyData, db *sql.DB, status string) {
+	userRole, _ := c.Get("userRole")
+
+	if userRole != "RECRUITER" {
+		c.JSON(http.StatusForbidden, gin.H{"error": userRole})
+		return
+	}
+
+	fmt.Print(applyData.JobID, applyData.CandidateID, status)
+
+	query := `UPDATE "JobApplication"
+		SET "status" = $3
+		WHERE "job_id" = $1 AND "candidate_id" = $2`
+
+	_, err := db.Exec(query, applyData.JobID, applyData.CandidateID, status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		log.Print(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Resume responded successfully"})
+}
+
 func (r *Response) Response(c *gin.Context, db *sql.DB) {
 	var applyData ApplyData
 
@@ -104,11 +127,129 @@ func (r *Response) Response(c *gin.Context, db *sql.DB) {
 		"acceptJob":      RespondJob,
 		"rejectJob":      RespondJob,
 		"applyForResume": ApplyForResume,
-		// "rejectResume":   RespondResume,
-		// "acceptResume":   RespondResume,
+		"acceptResume":   RespondResume,
+		"rejectResume":   RespondResume,
 	}
 
 	if handler, ok := methodsMap[applyData.Method]; ok {
 		handler(c, &applyData, db, status[applyData.Method])
+	}
+}
+
+func GetCandidateApplicationInfo(c *gin.Context, db *sql.DB) {
+	var resp СandidateResumeRespond
+	query := `
+	SELECT
+		u.email, j.Title, j.id,
+		co.company_name AS CompanyName,
+		co.image_url AS ImageUrl, co.phone_number AS PhoneNumber, co.recruiter_name AS RecruiterName
+	FROM "Company" co
+	LEFT JOIN "User" u ON co.recruiter_id = u.id
+	LEFT JOIN "Job" j ON j.id = (SELECT job_id FROM "ResumeApplication" WHERE "id" = $1)
+	WHERE co.recruiter_id = (SELECT recruiter_id FROM "ResumeApplication" WHERE "id" = $1)
+	`
+
+	rows := db.QueryRow(query, c.Param("id"))
+	err := rows.Scan(&resp.Email, &resp.JobTitle, &resp.JobID, &resp.CompanyName, &resp.ImageUrl, &resp.Phone, &resp.RecruiterName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func GetRecruiterApplicationInfo(c *gin.Context, db *sql.DB) {
+	var resp RecruiterResumeRespond
+	query := `
+			SELECT 
+			u.email, 
+			r.Title AS resume_title, 
+			r.id AS resume_id, 
+			j.Title AS job_title, 
+			j.id AS job_id
+		FROM "ResumeApplication" ra
+		JOIN "Resume" r ON r.id = ra.resume_id
+		JOIN "User" u ON u.id = r.creator_id
+		JOIN "Job" j ON j.id = ra.job_id
+		WHERE ra.id = $1
+	`
+
+	rows := db.QueryRow(query, c.Param("id"))
+	err := rows.Scan(&resp.Email, &resp.ResumeTitle, &resp.ResumeID, &resp.JobTitle, &resp.JobID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (r *Response) GetApplicationInfo(c *gin.Context, db *sql.DB) {
+	userRole, _ := c.Get("userRole")
+
+	if userRole == "CANDIDATE" {
+		GetCandidateOfferInfo(c, db)
+	} else if userRole == "RECRUITER" {
+		GetRecruiterApplicationInfo(c, db)
+	}
+}
+
+func GetCandidateOfferInfo(c *gin.Context, db *sql.DB) {
+	var resp СandidateResumeRespond
+	query := `
+	SELECT
+		u.email, j.Title, j.id,
+		co.company_name AS CompanyName,
+		co.image_url AS ImageUrl, co.phone_number AS PhoneNumber, co.recruiter_name AS RecruiterName
+	FROM "Company" co
+	LEFT JOIN "User" u ON co.recruiter_id = u.id
+	LEFT JOIN "Job" j ON j.id = (SELECT job_id FROM "JobApplication" WHERE "id" = $1)
+	WHERE co.recruiter_id = (SELECT recruiter_id FROM "JobApplication" WHERE "id" = $1)
+	`
+
+	rows := db.QueryRow(query, c.Param("id"))
+	err := rows.Scan(&resp.Email, &resp.JobTitle, &resp.JobID, &resp.CompanyName, &resp.ImageUrl, &resp.Phone, &resp.RecruiterName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func GetRecruiterOfferInfo(c *gin.Context, db *sql.DB) {
+	var resp RecruiterResumeRespond
+	query := `
+			SELECT 
+			u.email, 
+			r.Title AS resume_title, 
+			r.id AS resume_id, 
+			j.Title AS job_title,
+			j.id AS job_id
+		FROM "JobApplication" ja
+		JOIN "Resume" r ON r.creator_id = ja.candidate_id
+		JOIN "User" u ON u.id = r.creator_id
+		JOIN "Job" j ON j.id = ja.job_id
+		WHERE ja.id = $1
+	`
+
+	rows := db.QueryRow(query, c.Param("id"))
+	err := rows.Scan(&resp.Email, &resp.ResumeTitle, &resp.ResumeID, &resp.JobTitle, &resp.JobID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (r *Response) GetOfferInfo(c *gin.Context, db *sql.DB) {
+	userRole, _ := c.Get("userRole")
+
+	if userRole == "CANDIDATE" {
+		GetCandidateApplicationInfo(c, db)
+	} else if userRole == "RECRUITER" {
+		GetRecruiterOfferInfo(c, db)
 	}
 }

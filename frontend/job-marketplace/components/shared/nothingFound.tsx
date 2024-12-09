@@ -9,7 +9,7 @@ interface Props {
 
 export const NothingFound = ({ type, className } : Props) => {
     const messages = {
-        'notFound': "На жаль за вашим запитом нічого не було знайдено. ",
+        'notFound': "На жаль, за вашим запитом нічого не знайдено.",
         'noResume': "На жаль такого резюме не існує. ",
         'noJob': "На жаль такої вакансії не існує. ",
         'noCompany': "На жаль такої компанії не існує. ",

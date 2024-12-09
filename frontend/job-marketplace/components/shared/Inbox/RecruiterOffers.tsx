@@ -4,10 +4,10 @@ import { ResumeCardSkeleton, ResumeMainCardSkeleton } from "../Skeletons";
 import { ResumeCard, ResumeMainCard } from "../Candidate";
 import { useWindowWidth } from "@/components/hook/useWindowWidth";
 import { useRouter } from "next/navigation";
+import { handleResponse } from "@/lib/utils/handleResponse";
 
 interface OffersProps {
     setData: React.Dispatch<React.SetStateAction<Data | null>>;
-    data: Data | null;
     setSelectedResume: React.Dispatch<React.SetStateAction<Resume | null>>;
     selectedResume: Resume | null;
     offers: Resume[] | null;
@@ -16,9 +16,14 @@ interface OffersProps {
     className?: string
 }
 
-export const RecruiterOffers: React.FC<OffersProps> = ({ setSelectedResume, selectedResume, offers, loading, search, setData, data }) => {
+export const RecruiterOffers: React.FC<OffersProps> = ({ setSelectedResume, selectedResume, offers, loading, search, setData }) => {
     const screenWidth = useWindowWidth();
     const router = useRouter();
+
+    const handleResponseClick = (jobID: number, status: string) => {
+        const responseParams = { ID: jobID, status, setData, setSelectedData: setSelectedResume, selectedData: selectedResume };
+        handleResponse(responseParams);
+    }
     
     return (
         <div className="md:grid grid-cols-[37%,auto] w-full mt-12">
@@ -31,7 +36,7 @@ export const RecruiterOffers: React.FC<OffersProps> = ({ setSelectedResume, sele
                 offers != null && offers.length > 0 && offers.map((offer, index: number) => (
                     (offer.jobTitle!.toLowerCase().includes(search.toLowerCase()) || offer.category_name!.toLowerCase().includes(search.toLowerCase())) && (
                     <ResumeCard
-                        key={offer.id}
+                        key={index}
                         className={`${index != offers.length - 1 ? 'mb-3' : ''} ${selectedResume === offer && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                         data={offer}
                         onClick={() => {screenWidth > 768 ? setSelectedResume(offer) : router.push(`/candidates/${offer.id}`)}}
@@ -60,8 +65,10 @@ export const RecruiterOffers: React.FC<OffersProps> = ({ setSelectedResume, sele
                         <ResumeMainCard
                             className="h-screen overflow-auto scrollbar top-6 hidden md:block"
                             data={selectedResume}
-                            onApplyClick={() => {}}
+                            onApplyClick={handleResponseClick}
                             resumeStatus={selectedResume.status.String}
+                            route="offer"
+                            responseID={selectedResume.offerID}
                             keywords={[{ id: 1, name: 'Embedded' },
                             { id: 2, name: 'Linux' },
                             { id: 3, name: 'LinuxPostgreSQL' },

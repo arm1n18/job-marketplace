@@ -15,7 +15,11 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    if(request.nextUrl.pathname === '/candidates/create'){
+    if(request.nextUrl.pathname === '/login' && token || request.nextUrl.pathname === '/register' && token) {
+        return NextResponse.redirect(new URL('/profile', request.url));
+    }
+
+    if(request.nextUrl.pathname === '/candidates/create' || request.nextUrl.pathname.startsWith('/candidates/edit/')){
         if(!token) return NextResponse.redirect(new URL('/candidates', request.url));
     
         const role = jwtDecode<Role>(token).role;
@@ -25,7 +29,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    if(request.nextUrl.pathname === '/jobs/create'){
+    if(request.nextUrl.pathname === '/jobs/create' || request.nextUrl.pathname.startsWith('/jobs/edit/')){
         if(!token) return NextResponse.redirect(new URL('/jobs', request.url));
     
         const role = jwtDecode<Role>(token).role;
@@ -35,7 +39,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    if(request.nextUrl.pathname === '/company/create'){
+    if(request.nextUrl.pathname === '/company/create' || request.nextUrl.pathname.startsWith('/company/edit/')){
         if(!token) return NextResponse.redirect(new URL('/jobs', request.url));
     
         const role = jwtDecode<Role>(token).role;

@@ -66,7 +66,7 @@ export const ProfileButton: React.FC<Props> = (className) => {
                 </div>
             </div>
             {isOpen && (
-                <ul className="filters-list right-0 mt-2">
+                <ul className="filters-list top-8 right-0 mt-2">
                     <li className={`filter-item flex items-center gap-3`}><CircleUserRound size={16}/><a href="/profile">Мій профіль</a></li>
                     <li className={`filter-item flex items-center gap-3`}><Settings size={16} />Налаштування</li>
                     <li className={`filter-item flex items-center gap-3`} onClick={handleLogOut}><LogOut size={16}/><span>Вийти</span></li>

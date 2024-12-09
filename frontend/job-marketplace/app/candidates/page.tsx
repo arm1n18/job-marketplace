@@ -5,15 +5,14 @@ import { SearchInput } from "@/components/shared";
 import { ResumeMainCard, ResumeCard } from "@/components/shared/Candidate";
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQueryParams } from "@/components/hook/useQueryParams";
+import { useQueryParams, useWindowWidth } from "@/components/hook";
 import { filtersList } from "@/components/shared/filtersList";
 import { MobileFiltersSection } from "@/components/shared/MobileComponents/MobileFiltersSection";
-import fetchGroupDataService from "@/services/FetchDataService";
+import { ResumeCardSkeleton, ResumeMainCardSkeleton } from "@/components/shared/Skeletons";
 import { NothingFound } from "@/components/shared/nothingFound";
 import { FiltersSection } from "@/components/shared/FiltersSection";
+import fetchGroupDataService from "@/services/FetchDataService";
 import { FiltersType, Resume } from "@/types";
-import { ResumeCardSkeleton, ResumeMainCardSkeleton } from "@/components/shared/Skeletons";
-import { useWindowWidth } from "@/components/hook/useWindowWidth";
 
 export default function Candidates() {
     const [resumes, setResumes] = useState<Resume[]>([]);
@@ -47,11 +46,12 @@ export default function Candidates() {
         router.push(`?search=${query}`);
     }
 
-    const handleResponse = (resumeID: number) => {
+    const handleResponse = (resumeID: number, status: string) => {
+
         setResumes((prevResumes) =>{
             const updatedResumes = prevResumes.map((prevResume) => {
                 if (prevResume.id === resumeID) {
-                    const updatedResume = { ...prevResume, status: { ...prevResume.status, String: "OFFER_PENDING" } };
+                    const updatedResume = { ...prevResume, status: { ...prevResume.status, String: status } };
                     if(selectedResume?.id === resumeID) setSelectedResume(updatedResume);
                     return updatedResume;
                 }
@@ -60,6 +60,7 @@ export default function Candidates() {
             
             return updatedResumes;
         });
+
     };
 
     return (
@@ -112,7 +113,7 @@ export default function Candidates() {
                     <ResumeMainCard
                         className="h-screen overflow-auto scrollbar top-6 hidden md:block"
                         data={selectedResume}
-                        onApplyClick={() => handleResponse(selectedResume.id!)}
+                        onApplyClick={handleResponse}
                         resumeStatus={selectedResume.status.String}
                         keywords={[{ id: 1, name: 'Embedded' },
                         { id: 2, name: 'Linux' },

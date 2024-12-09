@@ -5,9 +5,18 @@ import { StackSection } from "@/components/shared/stackSection";
 import { Button } from "@/components/ui/button";
 import { SmallBannerSection } from "@/components/ui/small-banner-section";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 
 export default function Home() {
+  const router = useRouter();
+  
+  const handleSearch = async (query: string) => {
+    if(query.trim() === "") router.push(`/jobs`);
+    if( query.length < 2) return;
+    router.push(`/jobs?search=${query}`);
+}
+
   return (
     <>
       <div className="mb-48 bg-[#1C64EE] w-full">
@@ -18,9 +27,9 @@ export default function Home() {
                   <h1 className="text-5xl font-bold mb-4 text-white max-w-2xl">Знайди свою омріяну роботу разом з нами</h1>
                   <p className="text-xl text-white">Анонімно, швидко та безкоштовно</p>
                   <div className="max-md:flex-col flex items-center gap-4 mt-8">
-                    <SearchInput className="w-full" onSearch={() => {}} />
+                    <SearchInput className="w-full" onSearch={handleSearch} />
                     <Button className="flex items-center gap-2 max-md:w-full" variant={'outline_2'}>
-                        <Link href="/jobs">Знайти роботу</Link> 
+                        <Link href={`/jobs`}>Знайти роботу</Link> 
                     </Button>
                   </div>
                 </div>

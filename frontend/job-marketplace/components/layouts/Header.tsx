@@ -18,7 +18,7 @@ interface Props {
 export const Header: React.FC<Props> = ({ className }) => {
     const [openedMobileMenu, setOpenedMobileMenu] = React.useState(false);
     const screenWidth = useWindowWidth();
-    const {loggedIn} = useAuth();
+    const {loggedIn, role} = useAuth();
 
     useEffect(() => {
         if(screenWidth >= 768) setOpenedMobileMenu(false);
@@ -40,9 +40,10 @@ export const Header: React.FC<Props> = ({ className }) => {
                         <div className="gap-8 flex">
                             <Link className="mx-auto" href="/"><img src="/images/logo/joobly-logo-blue.svg" alt="joobly-logo" className="h-8" draggable="false"/></Link>     
                             <ul className="flex items-center gap-8 max-md:hidden h-full my-auto">
-                                <li><Link className="text-common-dark hover:text-[#1C64EE]" href="/jobs">Вакансії</Link></li>
+                                <li><Link className="text-common-dark hover:text-[#1C64EE]" href={`${role == 'RECRUITER' ? '/jobs/my-vacancies' : '/jobs'}`}>Вакансії</Link></li>
                                 <li><Link className="text-common-dark hover:text-[#1C64EE]" href="/candidates">Кандидати</Link></li>
                                 {loggedIn && <li><Link className="text-common-dark hover:text-[#1C64EE]" href="/inbox">Відгуки</Link></li>}
+                                <li><Link className="text-common-dark hover:text-[#1C64EE]" href="/company">Компанії</Link></li>
                             </ul>
                         </div>
                         <div className="flex float-right items-center">

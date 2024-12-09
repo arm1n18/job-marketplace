@@ -29,7 +29,7 @@ export const RecruiterApplications: React.FC<ApplicationsProps> = ({ setSelected
                 applications != null && applications.length > 0 && applications.map((application, index: number) => (
                     (application.jobTitle!.toLowerCase().includes(search.toLowerCase()) || application.category_name!.toLowerCase().includes(search.toLowerCase())) && (
                     <ResumeCard
-                        key={application.id}
+                        key={index}
                         className={`${index != applications.length - 1 ? 'mb-3' : ''} ${selectedResume === application && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                         data={application}
                         onClick={() => {screenWidth > 768 ? setSelectedResume(application) : router.push(`/candidates/${application.id}`)}}
@@ -60,6 +60,8 @@ export const RecruiterApplications: React.FC<ApplicationsProps> = ({ setSelected
                         data={selectedResume}
                         onApplyClick={() => {}}
                         resumeStatus={selectedResume.status.String}
+                        route="application"
+                        responseID={selectedResume.applicationID}
                         keywords={[{ id: 1, name: 'Embedded' },
                         { id: 2, name: 'Linux' },
                         { id: 3, name: 'LinuxPostgreSQL' },

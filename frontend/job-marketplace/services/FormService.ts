@@ -36,7 +36,8 @@ export default class FormService {
         try {
             const response = await axios.post(`http://192.168.0.106:8080/${this.url}`, this.data ,{
                 headers: {
-                    Authorization: this.JWTService.getAccessToken() ? `Bearer ${this.JWTService.getAccessToken()}` : undefined,
+                    Authorization: JWTService.getAccessToken() ? `Bearer ${JWTService.getAccessToken()}` : undefined,
+                    "Content-Type": "application/json",
                 },            
             });
             
@@ -47,11 +48,31 @@ export default class FormService {
 
             return response;
         } catch (error: any) {
-            return this.JWTService.handleError(error, () => this.sendForm());
+            return JWTService.handleError(error, () => this.sendForm());
         }
     }
 
-    private handleRedirect(data: any) {
+    private async sendUpdatedForm() {
+        try {
+            const response = await axios.put(`http://192.168.0.106:8080/${this.url}`, this.data ,{
+                headers: {
+                    Authorization: JWTService.getAccessToken() ? `Bearer ${JWTService.getAccessToken()}` : undefined,
+                    "Content-Type": "application/json",
+                },            
+            });
+            
+            if(response.status === 200) {
+                toast.success(this.message);
+                this.handleRedirect(response.data);
+            }
+
+            return response;
+        } catch (error: any) {
+            return JWTService.handleError(error, () => this.sendUpdatedForm());
+        }
+    }
+
+    public handleRedirect(data: any) {
         if(data.id) {
             this.router.push(`/${this.redirectURL}/${data.id}`);
         } else {
@@ -62,6 +83,13 @@ export default class FormService {
     public async submitForm() {
         this.setLoading(true);
         const response = await this.sendForm();
+        this.setLoading(false);
+        return response;
+    }
+
+    public async submitUpdatedForm() {
+        this.setLoading(true);
+        const response = await this.sendUpdatedForm();
         this.setLoading(false);
         return response;
     }

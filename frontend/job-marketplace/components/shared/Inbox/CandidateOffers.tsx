@@ -80,6 +80,8 @@ export const CandidateOffers: React.FC<OffersProps> = ({ setSelectedJob, selecte
                                 data={selectedJob}
                                 onApplyClick={handleResponse}
                                 jobStatus={selectedJob.status.String}
+                                responseID={selectedJob.offer_id}
+                                route="offer"
                                 keywords={[
                                 { id: 1, name: 'Embedded' },
                                 { id: 2, name: 'Linux' },

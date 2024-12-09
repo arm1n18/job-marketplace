@@ -1,18 +1,17 @@
 'use client';
 
 import { Container } from "@/components/Container";
-import { useQueryParams } from "@/components/hook/useQueryParams";
+import { useQueryParams, useWindowWidth } from "@/components/hook";
 import { filtersList } from "@/components/shared/filtersList";
+import { JobCard, JobMainCard, SearchInput } from "@/components/shared";
 import { FiltersSection } from "@/components/shared/FiltersSection";
 import { NothingFound } from "@/components/shared/nothingFound";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { CompanyCard } from "@/components/shared/Company/CompanyCard";
-import { JobCard, JobMainCard, SearchInput } from "@/components/shared";
 import { MobileFiltersSection } from "@/components/shared/MobileComponents/MobileFiltersSection";
 import { CompanyCardSkeleton, JobCardSkeleton, JobMainCardSkeleton, Skeleton } from "@/components/shared/Skeletons";
 import { Company, FiltersType, Job } from "@/types";
-import { useWindowWidth } from "@/components/hook/useWindowWidth";
 import CompanyService from "@/services/CompanyService";
 
 export default function CompanyPage({ params: { id } }: { params: { id: string } }) {
@@ -129,7 +128,7 @@ export default function CompanyPage({ params: { id } }: { params: { id: string }
                                     onClick={() => {screenWidth > 768 ? setSelectedJob(companyJob) : router.push(`/jobs/${companyJob.id}`)}}
                                     data={companyJob}
                                     keyInfo={[
-                                        companyJob.city_name || "Україна",
+                                        companyJob.city || "Україна",
                                         companyJob.employment_name ?? "",
                                         companyJob.experience
                                             ? `${companyJob.experience.toString()} ${companyJob.experience > 4 ? "років" : (companyJob.experience > 1 ? "роки" : "рік")} досвіду`

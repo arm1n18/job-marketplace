@@ -70,7 +70,7 @@ export default class AuthService {
                 return { success: true, data: response.data };
             }
         }catch (err) {
-            toast.warn((err as Error).toString());
+            toast.warning((err as Error).toString());
             return { success: false, error: (err as Error).toString() };
         }
     }

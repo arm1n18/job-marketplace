@@ -56,6 +56,7 @@ export const SearchInput: React.FC<Props> = ({ className, onSearch, value }) => 
         };
         localStorage.setItem('searchQueries', JSON.stringify(storedQueries));
     }
+    
     function removeFromHistory(dataToRemove: string) {
         storedQueries.splice(storedQueries.indexOf(dataToRemove), 1);
         localStorage.setItem('searchQueries', JSON.stringify(storedQueries));

@@ -8,3 +8,8 @@ export interface Company {
     linkedin: string;
     facebook: string;
 }
+
+export interface CompaniesList extends Company {
+    total_jobs?: number;
+    average_salary?: number
+}

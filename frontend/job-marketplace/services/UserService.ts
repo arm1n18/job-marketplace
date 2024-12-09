@@ -28,7 +28,7 @@ export default class UserService {
         try {
             const response = await axios.get(`http://192.168.0.106:8080/${this.url}`, {
                 headers: {
-                    Authorization: this.JWTService.getAccessToken() ? `Bearer ${this.JWTService.getAccessToken()}` : undefined,
+                    Authorization: JWTService.getAccessToken() ? `Bearer ${JWTService.getAccessToken()}` : undefined,
                 },
                 withCredentials: true
             });

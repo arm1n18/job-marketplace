@@ -22,7 +22,7 @@ func MigrateDatabase() {
 	}
 
 	err = db.AutoMigrate(
-		&database.Company{},
+		&database.Job{},
 	)
 	if err != nil {
 		log.Fatalf("Ошибка миграции базы данных: %v", err)

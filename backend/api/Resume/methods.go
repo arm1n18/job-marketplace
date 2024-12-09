@@ -23,11 +23,7 @@ func (r *ResumeStruct) GetResumes(c *gin.Context, db *sql.DB) {
 	s.Name AS SubcategoryName,
 	ct.Name AS CityName,
 	r.Experience, e.Name AS EmploymentName,
-	r.salary, r.created_at, r.updated_at,
-			COALESCE(
-				ra.status,
-				ja.status
-			) AS status
+	r.salary, r.created_at, r.updated_at, ja.status
 	FROM "Resume" r
 	LEFT JOIN "Category" c ON r.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON r.subcategory_id = s.ID
@@ -35,14 +31,13 @@ func (r *ResumeStruct) GetResumes(c *gin.Context, db *sql.DB) {
 	LEFT JOIN "Employment" e ON r.employment_id = e.ID
 	LEFT JOIN "User" u ON r.creator_id = u.ID
 	LEFT JOIN "JobApplication" ja ON ja.candidate_id = r.creator_id AND ja.recruiter_id = $1
-	LEFT JOIN "ResumeApplication" ra ON ra.resume_id = r.ID AND ra.recruiter_id = u.ID
 	WHERE TRUE
 	`)
 
 	var queryParams []interface{}
 	queryParams = append(queryParams, userID)
 
-	argID := 1
+	argID := 2
 
 	if params.Search != "" {
 		query += `AND (r.title ILIKE '%' || $` + strconv.Itoa(argID) + ` || '%'
@@ -88,7 +83,7 @@ func (r *ResumeStruct) GetResumes(c *gin.Context, db *sql.DB) {
 		argID++
 	}
 
-	query += ` ORDER BY r.ID DESC
+	query += ` ORDER BY r.updated_at DESC
 	LIMIT 15`
 
 	rows, err := db.Query(query, queryParams...)
@@ -234,4 +229,50 @@ func (r *ResumeStruct) CreateResume(c *gin.Context, db *sql.DB) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": resumeID})
+}
+
+func (r *ResumeStruct) UpdateResume(c *gin.Context, db *sql.DB) {
+	var resume ResumeCreate
+	userID, _ := c.Get("userID")
+
+	if err := c.ShouldBindJSON(&resume); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var nullableSubcategoryName, nullableCityName *string
+	if resume.SubcategoryName == nil || *resume.SubcategoryName == "" {
+		nullableSubcategoryName = nil
+	} else {
+		nullableSubcategoryName = resume.SubcategoryName
+	}
+
+	if resume.CityName == nil || *resume.CityName == "" {
+		nullableCityName = nil
+	} else {
+		nullableCityName = resume.CityName
+	}
+
+	query := `UPDATE "Resume"
+		SET 
+			"title" = $1, "work_experience" = $2, "achievements" = $3, 
+			"category_id" = (SELECT id FROM "Category" WHERE "name" = $4), 
+			"subcategory_id" = (SELECT id FROM "Subcategory" WHERE "name" = $5),
+			"city_id" = (SELECT id FROM "City" WHERE "name" = $6), 
+			"experience" = $7, 
+			"employment_id" = (SELECT id FROM "Employment" WHERE "name" = $8), 
+			"salary" = $9, "updated_at" = NOW()
+		WHERE "creator_id" = $10 AND "id" = $11`
+
+	_, err := db.Exec(query, resume.Title, resume.WorkExperience, resume.Achievements,
+		resume.CategoryName, nullableSubcategoryName, nullableCityName, resume.Experience,
+		resume.EmploymentName, resume.Salary, userID, resume.ID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		log.Print(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Resume updated successfully"})
 }

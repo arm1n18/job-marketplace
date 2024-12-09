@@ -2,34 +2,28 @@
 
 import { categories, cities, employment } from "@/components/consts/filters-consts";
 import { Container } from "@/components/Container";
-import { useAuth } from "@/components/hook/AuthContext";
-import { useFormSubmit } from "@/components/hook/useFormSubmit";
+import { useAuth, useFormSubmit } from "@/components/hook";
 import { validationCreateJob } from "@/components/shared/validation-form";
-import { Button } from "@/components/ui/button";
-import { CheckBoxesSection } from "@/components/ui/checkBoxesSection";
-import { FilterDropDown } from "@/components/ui/filterDropDown";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { Textarea } from "@/components/ui/textarea";
+import { FilterDropDown, CheckBoxesSection, Button, Input, Slider, Textarea } from "@/components/ui";
+import { JobCreate } from "@/types";
 import { CircleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+
 
 export default function CreateJob() {
     const { email, id} = useAuth();
     const router = useRouter();
 
     const [minValue, setMinValue] = useState([0]);
-    const [formdata, setFormdata] = useState({ title: '', category_name: '', subcategory_name: '',
-    salary_from: 0, salary_to: 0, city: '', employment_name: '', experience: 0, description: '', requirements: '', offer: '', email: email ?? "", id: id ?? "" });
+    const [formdata, setFormdata] = useState<JobCreate>({ title: '', category_name: '', subcategory_name: '',
+    salary_from: 0, salary_to: 0, city: '', employment_name: '', experience: 0, description: '', requirements: '', offer: '', email: email!, id: id!});
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-    const handleFieldSubmit = (value: string | number, fieldName: string) => {
-        setFormdata({ ...formdata, [fieldName]: value});
-    };
-
-    const handleGroupClick = (group: string, subgroup: string) => {
-        setFormdata({ ...formdata, "category_name": group, "subcategory_name": subgroup});
+    const handleChange = (fields: Partial<JobCreate>) => {
+        console.log(formdata);
+        setFormdata({...formdata, ...fields});
     };
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
@@ -40,7 +34,7 @@ export default function CreateJob() {
         await useFormSubmit({
             e, 
             url: "jobs/",
-            dataToSend: formdata,
+            dataToSend: formdata as { [key: string]: string | number | File; },
             setLoading: () => {},
             validationZod: validationCreateJob,
             setErrors,
@@ -61,7 +55,7 @@ export default function CreateJob() {
                         <div className="lg:w-[464px]">
                             <Input className={`w-full ${errors.title && "border-red-500"} bg-[#F9FAFB]`}
                                 placeholder="Наприклад: JavaScript / Front-End розробник"
-                                onChange={(e) => handleFieldSubmit(e.target.value, "title")}
+                                onChange={(e) => handleChange({title: e.target.value})}
                             />
                             {errors.title && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.title}</p>}
                         </div>
@@ -72,7 +66,7 @@ export default function CreateJob() {
                             <FilterDropDown
                                 title={"JavaScript / Front-End"}
                                 categories = {categories}
-                                setSelectedGroup={handleGroupClick}
+                                setSelectedGroup={(group, subgroup) => handleChange({ category_name: group, subcategory_name: subgroup })}
                             />
                             {errors.category_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.category_name}</p>}
                         </div>
@@ -92,7 +86,7 @@ export default function CreateJob() {
                                 max={10}
                                 step={0.5}
                                 className="w-full"
-                                onValueChange={(minValue) => {setMinValue(minValue), handleFieldSubmit(minValue[0], "experience")}}
+                                onValueChange={(minValue) => {setMinValue(minValue), handleChange({experience: minValue[0]})}}
                             />
                         </div>
                         </div>
@@ -105,7 +99,7 @@ export default function CreateJob() {
                                         <div className="bg-gray-selected w-16 flex items-center justify-center rounded-l-lg filters-text">$</div>
                                         <Input className="w-28 bg-[#F9FAFB] rounded-l-none border-l-0"
                                             placeholder="1500"
-                                            onChange={(e) => handleFieldSubmit(Number(e.target.value), "salary_from")}
+                                            onChange={(e) => handleChange({salary_from: Number(e.target.value)})}
                                         />
                                 </div>
                                 
@@ -115,7 +109,7 @@ export default function CreateJob() {
                                         <div className="bg-gray-selected w-16 flex items-center justify-center rounded-l-lg filters-text">$</div>
                                         <Input className="w-28 bg-[#F9FAFB] rounded-l-none border-l-0"
                                             placeholder="2500"
-                                            onChange={(e) => handleFieldSubmit(Number(e.target.value), "salary_to")}
+                                            onChange={(e) => handleChange({salary_to: Number(e.target.value)})}
                                         />
                                 </div>
                            </div>
@@ -128,7 +122,7 @@ export default function CreateJob() {
                         <FilterDropDown
                                 title={"Місто"}
                                 categories = {cities}
-                                setSelectedGroup={(e) => handleFieldSubmit(e, "city")}
+                                setSelectedGroup={(e) => handleChange({city: e})}
                             />
                         </div>
                     </div>
@@ -136,7 +130,7 @@ export default function CreateJob() {
                         <legend className="text-common-dark max-w-32 max-lg:mb-2">Формат</legend>
                         <div className="lg:w-[464px]">
                             <CheckBoxesSection title={employment}
-                                setSelectedFormat={(e) => handleFieldSubmit(e, "employment_name")}
+                                setSelectedFormat={(e) => handleChange({employment_name: e})}
                             />
                             {errors.employment_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.employment_name}</p>}
                         </div>
@@ -149,10 +143,10 @@ export default function CreateJob() {
                         </div>
                         <div className="lg:w-[464px]">
                             <Textarea className={`${errors.description && "border-red-500"} bg-[#F9FAFB]`} placeholder="Опис"
-                                onChange={(e) => handleFieldSubmit(e.target.value, "description")}
+                                onChange={(e) => handleChange({description: e.target.value})}
                             />
                             {errors.description && <p className="text-red-500 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.description}</p>}
-                            <div className="filters-text">{formdata.description.length}/2000</div>
+                            <div className="filters-text">{(formdata.description ?? "").length}/2000</div>
                         </div>
                     </div>
                     <div className="grid mb-12 lg:grid-cols-2">
@@ -162,10 +156,10 @@ export default function CreateJob() {
                         </div>
                         <div className="w-full lg:w-[464px]">
                             <Textarea className={`${errors.requirements && "border-red-500"} bg-[#F9FAFB] w-full`} placeholder="Вимоги"
-                                onChange={(e) => handleFieldSubmit(e.target.value, "requirements")}
+                                onChange={(e) => handleChange({requirements: e.target.value})}
                             />
                             {errors.requirements && <p className="text-red-500 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.requirements}</p>}
-                            <div className="filters-text">{formdata.requirements.length}/2000</div>
+                            <div className="filters-text">{(formdata.requirements ?? "").length}/2000</div>
                         </div>
                     </div>
                     <div className="grid mb-12 lg:grid-cols-2">
@@ -175,10 +169,11 @@ export default function CreateJob() {
                         </div>
                         <div className="lg:w-[464px]">
                             <Textarea className={`${errors.offer && "border-red-500"} bg-[#F9FAFB]`} placeholder="Пропонуємо"
-                                onChange={(e) => handleFieldSubmit(e.target.value, "offer")}
+                                onChange={(e) => handleChange({offer: e.target.value})}
+                                
                             />
                             {errors.offer && <p className="text-red-500 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.offer}</p>}
-                            <div className="filters-text">{formdata.offer.length}/1000</div>
+                            <div className="filters-text">{(formdata.offer ?? "").length}/1000</div>
                         </div>
                     </div>
                     <div className="flex lg:justify-end gap-4">

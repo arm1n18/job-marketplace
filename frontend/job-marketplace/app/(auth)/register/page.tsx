@@ -3,11 +3,9 @@
 import { Container } from "@/components/Container";
 import { useAuth } from "@/components/hook/AuthContext";
 import { validationFormAuth } from "@/components/shared/validation-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { RoleButton } from "@/components/ui/role-button";
+import { Button, Input, RoleButton } from "@/components/ui";
 import AuthService from "@/services/AuthService";
-import { Roles } from "@/types/types";
+import { Roles } from "@/types";
 import { CircleAlert } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import React, { useState } from "react";

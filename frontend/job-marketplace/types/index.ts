@@ -1,10 +1,11 @@
-export type { Company } from './company.type';
-export type { Job } from './job.type';
+export type { Company, CompaniesList } from './company.type';
+export type { Job, JobCreate } from './job.type';
 export type { FiltersType } from './filters.type';
 export type { ProfileType } from './profile.type';
-export type { Resume } from './resume.type';
+export type { Resume, ResumeCreate } from './resume.type';
 export type { KeywordsType } from './types';
 export type { ParameterType } from './types';
 export type { SendJobType } from './types';
 export type { Roles } from './types';
 export type { ResponseDataType } from './response.type';
+export type { FormSubmit } from './form.type';

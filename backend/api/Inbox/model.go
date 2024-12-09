@@ -15,6 +15,8 @@ type InboxData struct {
 
 type ResumeRespond struct {
 	resume.Resume
-	JobID    int    `json:"jobID"`
-	JobTitle string `json:"jobTitle"`
+	JobID         int    `json:"jobID"`
+	JobTitle      string `json:"jobTitle"`
+	OfferID       int    `json:"offerID"`
+	ApplicationID int    `json:"applicationID"`
 }

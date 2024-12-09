@@ -106,10 +106,10 @@ export const FiltersSection: React.FC<Props> = ({ className, onUpdateFilters }) 
             </div>
             <div className="flex gap-2">
                 
-                <Button className="w-fit" variant="outline" onClick={() => {handleReset()}}>
+                <Button className="w-fit" variant="outline" size="sm" onClick={() => {handleReset()}}>
                         <X className="w-4 h-4" />
                 </Button>
-                <Button className="w-fit" variant="default" onClick={() => onUpdateFilters({ ...filters})}>
+                <Button className="w-fit" variant="default" size="sm" onClick={() => onUpdateFilters({ ...filters})}>
                         <Check  className="w-4 h-4" />
                 </Button>
             </div>

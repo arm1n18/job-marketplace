@@ -1,4 +1,4 @@
-export type Method = "applyForJob" | "applyForResume" | "cancleResume" | "cancleJob" | "acceptJob" | "acceptResume";
+export type Method = "applyForJob" | "applyForResume" | "rejectResume" | "rejectJob" | "acceptJob" | "acceptResume";
 
 
 export interface ResponseDataType {
