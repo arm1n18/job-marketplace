@@ -1,4 +1,4 @@
-import { CircleAlert, CircleCheck, Clock, Dot, Loader, LoaderCircle } from "lucide-react"
+import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react"
 
 interface Props {
     status: string,

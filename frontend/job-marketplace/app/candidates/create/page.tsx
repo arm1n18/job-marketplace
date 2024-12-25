@@ -2,7 +2,7 @@
 
 import { categories, cities, employment } from "@/components/consts/filters-consts";
 import { Container } from "@/components/Container";
-import { Button, Input, Textarea, Slider, CheckBoxesSection, FilterDropDown } from "@/components/ui";
+import { Button, Input, Textarea, Slider, CheckBoxesSection, FilterDropDown, KeywordsInput } from "@/components/ui";
 import { useState } from "react";
 import { validationCreateResume } from "@/components/shared/validation-form";
 import { Asterisk, CircleAlert } from "lucide-react";
@@ -10,12 +10,12 @@ import { useFormSubmit, useAuth } from "@/components/hook";
 import { useRouter } from "next/navigation";
 import { ResumeCreate } from "@/types";
 
-export default function CreateJob() {
+export default function CreateCandidate() {
     const { email, id} = useAuth();
     const router = useRouter();
 
     const [minValue, setMinValue] = useState([0]);
-    const [formData, setFormData] = useState<ResumeCreate>({ title: '', category_name: '', subcategory_name: '',
+    const [formData, setFormData] = useState<ResumeCreate>({ title: '', category_name: '', subcategory_name: '', keywords: [],
     salary: 0, city_name: '', employment_name: '', experience: 0, work_experience: '', achievements: '', email: email!, id: id! });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -25,7 +25,7 @@ export default function CreateJob() {
         setFormData({...formData, ...fields});
     };
 
-    const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
+    const HandleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         console.log(formData);
 
         e.preventDefault();
@@ -47,7 +47,8 @@ export default function CreateJob() {
             <Container className="mt-12">
                 <h1 className="text-title-dark my-12">Оформелення профілю</h1>
                 <div className="line-gray mb-12" />
-                <form className="lg:w-fit" onSubmit={handleSubmit}>
+                <form className="lg:w-fit" onSubmit={HandleSubmit}>
+                    {/* {Посада} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Посада</legend>
                         <div className="lg:w-[464px]">
@@ -58,6 +59,7 @@ export default function CreateJob() {
                             {errors.title && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.title}</p>}
                         </div>
                     </div>
+                    {/* {Категорія} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Категорія</legend>
                         <div className="lg:w-[464px]">
@@ -69,12 +71,18 @@ export default function CreateJob() {
                             {errors.category_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.category_name}</p>}
                         </div>
                     </div>
+                    {/* {Ключові слова - не працює} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Ключові слова</legend>
                         <div className="lg:w-[464px]">
-                            <Input className="w-full bg-[#F9FAFB]" placeholder="Наприклад: JavaScript / Front-End розробник" />
+                            <KeywordsInput
+                                setKeywords={(keywords) => handleChange({keywords})}
+                                keywords={formData.keywords}
+                            />
+                            {errors.keywords && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.keywords}</p>}
                         </div>
                     </div>
+                    {/* {Досвід роботи} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Досвід роботи</legend><div className="lg:w-[464px]">
                             <div className="lg:w-[464px] flex flex-col justify-between h-[36px]">
@@ -83,11 +91,12 @@ export default function CreateJob() {
                                 max={10}
                                 step={0.5}
                                 className="w-full"
-                                onValueChange={(minValue) => {setMinValue(minValue), handleChange({experience: minValue[0]})}}
+                                onValueChange={(minValue) => {setMinValue(minValue); handleChange({experience: minValue[0]})}}
                             />
                         </div>
                         </div>
                     </div>
+                    {/* {Заробітна плата} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Заробітна плата</legend>
                         <div className="lg:w-[464px]">
@@ -102,6 +111,7 @@ export default function CreateJob() {
                             {errors.salary && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.salary}</p>}
                         </div>
                     </div>
+                    {/* {Місто} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Місто</legend>
                         <div className="lg:w-[464px]">
@@ -112,6 +122,7 @@ export default function CreateJob() {
                             />
                         </div>
                     </div>
+                    {/* {Посада} */}
                     <div className="grid mb-12 lg:mb-24 lg:grid-cols-2">
                         <legend className="text-common-dark max-w-32 max-lg:mb-2">Формат</legend>
                         <div className="lg:lg:w-[464px]">
@@ -121,7 +132,7 @@ export default function CreateJob() {
                             {errors.employment_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.employment_name}</p>}
                         </div>
                     </div>
-
+                    {/* {Формат} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex flex-col lg:max-w-56">
                             <legend className="text-common-dark max-lg:mb-2">Досвід роботи</legend>
@@ -136,6 +147,7 @@ export default function CreateJob() {
                             <div className="filters-text">{(formData.work_experience ?? "").length}/2000</div>
                         </div>
                     </div>
+                    {/* {Досягнення} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex flex-col lg:max-w-56">
                             <div className="flex gap-1">
@@ -152,11 +164,12 @@ export default function CreateJob() {
                             <div className="filters-text">{(formData.achievements ?? "").length}/2000</div>
                         </div>
                     </div>
+                    {/* {Кнопки} */}
                     <div className="flex lg:justify-end gap-4">
                         <Button variant="outline" onClick={() => router.back()}>
                                 Скасувати
                         </Button>
-                        <Button className="max-md:w-48" onClick={() => handleSubmit}>
+                        <Button className="max-md:w-48" onClick={() => HandleSubmit}>
                             Опублікувати резюме
                         </Button>
                     </div>

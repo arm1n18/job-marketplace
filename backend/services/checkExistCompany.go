@@ -4,32 +4,25 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-func UpdateCompany(c *gin.Context) {
-	// сделать
-}
-
-func CheckExistCompany(db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func CheckExistCompany(db *sql.DB) func(*fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
 		var exists bool
 
-		recruiterID := c.DefaultPostForm("recruiter_id", "")
+		recruiterID := c.FormValue("recruiter_id")
 
 		query := `SELECT EXISTS(SELECT 1 FROM "Company" WHERE "recruiter_id" = $1)`
 		err := db.QueryRow(query, recruiterID).Scan(&exists)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Помилка запиту до бази даних"})
 		}
 
 		if exists {
-			c.JSON(http.StatusConflict, gin.H{"message": "Компанія вже існує!"})
-			c.Abort()
-			return
+			return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "Компанія вже існує!"})
 		}
 
-		c.Next()
+		return c.Next()
 	}
 }

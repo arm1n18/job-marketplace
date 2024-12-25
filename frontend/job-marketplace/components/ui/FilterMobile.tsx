@@ -74,9 +74,12 @@ export const FilterMobile: React.FC<Props> = ({className, title, categories, set
                     <React.Fragment key={index}>
                         <li key={index} className={`${selected.group != '' && selected.group && selected.subgroup !== '' && selected.group === category.name ? `filter-item-mobile selected` : `filter-item-mobile`} flex justify-between items-center`}
                         onClick={() => {
-                            const newChosenGroup = selected.group === category.name && selected.subgroup == '' ? '' : category.name;
-                            {category.subgroups!.length == 0 && setSelected({ group: newChosenGroup ?? '', subgroup: '' })}
-                        }}>
+                            const newChosenGroup = selected.group === category.name && selected.subgroup === '' ? '' : category.name;
+                            if (category.subgroups!.length === 0) {
+                              setSelected({ group: newChosenGroup ?? '', subgroup: '' });
+                            }
+                          }}
+                          >
                             <div className="flex gap-2">
                                     <input type="checkbox" className="size-5" checked={selected.group === category.name} onChange={() => {
                                         const newChosenGroup = selected.group === category.name && selected.subgroup == '' ? '' : category.name;
@@ -87,7 +90,7 @@ export const FilterMobile: React.FC<Props> = ({className, title, categories, set
                                 {category.subgroups!.length > 0 && <div className="key-word-block">{category.subgroups!.length}</div>}
                             </div>
                             {category.subgroups!.length > 0 && 
-                                <ChevronDown size={24} color={"#1C64EE"} className={`mr-2 ${isOpenSubCategory == index ? 'rotate-180' : ''}`} onClick={(e) => { e.stopPropagation(), handleToggleSubCategory(index)}}/>
+                                <ChevronDown size={24} color={"#1C64EE"} className={`mr-2 ${isOpenSubCategory == index ? 'rotate-180' : ''}`} onClick={(e) => { e.stopPropagation(); handleToggleSubCategory(index)}}/>
                             }
                         </li>
                         {category.subgroups!.length > 0 && isOpenSubCategory === index && (

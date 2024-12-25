@@ -9,6 +9,7 @@ export interface ProfileType {
     title: string;
     category_name: string;
     subcategory_name: string;
+    keywords: string[];
     experience: number;
     city_name: string;
     salary: number;

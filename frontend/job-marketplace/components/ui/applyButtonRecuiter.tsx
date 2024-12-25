@@ -12,7 +12,7 @@ interface Props {
     className ?: string;
 }
 
-export const ApplyButtonRecruiter: React.FC<Props> = ({roleAccess, status, className, loading, jobsList,setJobsList}) => {
+export const ApplyButtonRecruiter: React.FC<Props> = ({roleAccess, status, className, loading, setJobsList}) => {
     const { loggedIn, role } = useAuth();
 
     

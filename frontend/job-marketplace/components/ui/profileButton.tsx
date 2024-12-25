@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOutUser } from "@/lib/utils/LogOutUser";
 import { fetchAvatar } from "../../lib/utils/fetchAvatar";
 import Link from "next/link";
+import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { useAuth } from "../hook/AuthContext";
 import { useWindowWidth } from "../hook/useWindowWidth";
@@ -53,7 +54,7 @@ export const ProfileButton: React.FC<Props> = (className) => {
                     <Link href="/profile">
                         {
                             avatarUrl && avatarUrl.length > 0 ?
-                            (<img src={avatarUrl} alt="avatar" className="rounded-full w-8 h-8" />) 
+                            (<Image src={avatarUrl} alt="avatar" className="rounded-full w-8 h-8" height={128} width={128} />) 
                             : (<NoImgAvatars className="rounded-full w-8 h-8 text-[12px]" name={String(email)}/>)
                         }
                     </Link>

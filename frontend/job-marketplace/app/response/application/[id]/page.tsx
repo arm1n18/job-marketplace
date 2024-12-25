@@ -1,12 +1,13 @@
 'use client';
 
 import FetchDataService from "@/services/FetchDataService";
-import { Resume, Job } from "@/types";
 import { useEffect, useState } from "react"
 import { Container } from "@/components/Container";
 import Link from "next/link";
 import { NoImgAvatars } from "@/components/ui";
 import { useAuth } from "@/components/hook";
+import { NothingFound } from "@/components/shared/nothingFound";
+import Image from "next/image";
 
 export interface Data {
     jobID: number;
@@ -29,6 +30,16 @@ export default function ResumeResponse({ params: { id } }: { params: { id: numbe
         const getResumeByID = new FetchDataService({url: `response/application/${id}`, setLoading, setData: setData});
         getResumeByID.getData();
     }, [id]);
+
+    if(!loading && !data) {
+        return (
+            <div className="mx-4 mb-24">
+                <Container className="my-12">
+                    <NothingFound type={"notFound"} />
+                </Container >
+            </div>
+        )
+    }
 
     return (
         <div className="mx-4 mb-24">
@@ -58,8 +69,8 @@ export default function ResumeResponse({ params: { id } }: { params: { id: numbe
                         <div className="flex flex-col">
                             <div className="flex max-md:flex-col gap-4 md:items-center">
                                 {data?.imageUrl ? (
-                                        <img className="rounded-xl size-12 md:size-16 object-cover " loading="lazy" src={data?.imageUrl} alt={`${data.company_name} logo`} />
-                                    ) : (<NoImgAvatars className="rounded-xl size-12 md:size-16 text-2xl" name={data?.company_name!} />)}
+                                        <Image className="rounded-xl size-12 md:size-16 object-cover " loading="lazy" src={data?.imageUrl} alt={`${data.company_name} logo`} />
+                                    ) : (<NoImgAvatars className="rounded-xl size-12 md:size-16 text-2xl" name={data?.company_name || ""} />)}
                                 <div>
                                     <h1 className="text-common-selected">Вітаю!</h1>
                                     <div className="text-common-selected flex gap-1 flex-wrap">
@@ -75,7 +86,7 @@ export default function ResumeResponse({ params: { id } }: { params: { id: numbe
                             <div className="mt-8 text-common">
                                 Дякуємо за виявлений інтерес до вакансії <Link href={`/jobs/${data?.jobID}`} className="text-common-blue hover:underline">{data?.jobTitle}</Link>. <br />
                                 Ми раді повідомити, що запропонуване вами  резюме, було схвалено і Ви були обрані для подальшого розгляду.<br />
-                                Найближчим часом, ми зв'яжемося з Вами для обговорення деталей наступного кроку.
+                                Найближчим часом, ми зв&apos;яжемося з Вами для обговорення деталей наступного кроку.
                             </div>
                             <p className="text-common mt-8">До побачення!</p>
                         </div>

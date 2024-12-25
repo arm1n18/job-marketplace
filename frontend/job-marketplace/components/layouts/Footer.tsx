@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import React from "react";
 import Link from "next/link";
 import { Container } from "../Container";
+import Image from "next/image";
 
 interface Props {
     className ?: string;
@@ -14,7 +15,7 @@ export const Footer: React.FC<Props> = ({ className }) => {
             <Container className="flex items-center h-full">
                         <div className="flex max-sm:flex-col max-sm:gap-2 w-full justify-between mx-4">
                             <div className="flex flex-col">
-                                <a href="/"><img src="/images/logo/joobly-logo-blue.svg" alt="joobly-logo" className="h-8" draggable="false"/></a>
+                                <a href="/"><Image src="/images/logo/joobly-logo-blue.svg" alt="joobly-logo" className="h-8 w-auto" width={100} height={32} draggable="false"/></a>
                                 <div className="flex-grow"></div>
                                 <p className="text-common">© 2024 Joobly.ua</p>
                             </div>

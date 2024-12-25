@@ -17,6 +17,7 @@ export const cities = [
 ]
 
 export const employment = ["Офіс", "Віддалена робота", "Змішаний тип"]
+
 export const employmentWithSubgroups = [
     {name: "Офіс", subgroups: []},
     {name: "Віддалена робота", subgroups: []},

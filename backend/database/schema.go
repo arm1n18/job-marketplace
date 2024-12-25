@@ -1,6 +1,10 @@
 package database
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type User struct {
 	ID uint `json:"id" gorm:"unique;primaryKey;autoIncrement"`
@@ -77,7 +81,7 @@ type Job struct {
 	SubcategoryID *uint        `json:"subcategory_id" gorm:"index"`
 	Subcategory   *Subcategory `json:"subcategory" gorm:"foreignKey:SubcategoryID"`
 
-	KeyWords *[]Keyword `json:"keywords" gorm:"foreignKey:JobID"`
+	KeyWords pq.StringArray `json:"keywords" gorm:"type:text[]"`
 
 	SalaryFrom uint `json:"salary_from"`
 	SalaryTo   uint `json:"salary_to"`
@@ -116,7 +120,7 @@ type Resume struct {
 	SubcategoryID *uint        `json:"subcategory_id" gorm:"index"`
 	Subcategory   *Subcategory `json:"subcategory" gorm:"foreignKey:SubcategoryID"`
 
-	KeyWords *[]Keyword `json:"keywords" gorm:"foreignKey:ResumeID"`
+	KeyWords pq.StringArray `json:"keywords" gorm:"type:text[]"`
 
 	Salary uint `json:"salary"`
 
@@ -214,12 +218,7 @@ func (Subcategory) TableName() string {
 type Keyword struct {
 	ID uint `json:"id" gorm:"unique;primaryKey;autoIncrement"`
 
-	Name       string   `json:"keyword_name"`
-	CategoryID uint     `json:"category_id"`
-	Category   Category `json:"category" gorm:"foreignKey:CategoryID"`
-
-	JobID    uint `json:"job_id"`
-	ResumeID uint `json:"resume_id"`
+	Name string `json:"keyword_name"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

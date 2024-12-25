@@ -1,6 +1,7 @@
 import { Method, ResponseDataType } from "@/types/response.type";
 import axios from "axios";
 import { toast } from "react-toastify";
+import JWTService from "./JWTService";
 
 interface ApplyType {
     role: "CANDIDATE" | "RECRUITER";
@@ -19,16 +20,12 @@ export default class ApplyService {
 
     }
 
-    public getAccessToken() {
-        return localStorage.getItem("access_token") ?? ""
-    }
-
     public async respondTo() {
         console.log(this.data);
         try {
             const response = await axios.post(`http://192.168.0.106:8080/response/`, this.data, {
                 headers: {
-                    Authorization: this.getAccessToken() ? `Bearer ${this.getAccessToken()}` : undefined,
+                    Authorization: JWTService.getAccessToken() ? `Bearer ${JWTService.getAccessToken()}` : undefined,
                 },
                 withCredentials: true,
             });
@@ -38,8 +35,8 @@ export default class ApplyService {
             }
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                toast.warning(error.response.data.message);
-                return { success: false };
+                toast.warning(error.response.data.error);
+                return JWTService.handleError(error, () => this.respondTo);
             }
         }
         
@@ -48,12 +45,11 @@ export default class ApplyService {
     public async respond() {
 
         if(this.role === "CANDIDATE" && this.data.method as Method) {
-            await this.respondTo();
-            return { success: true};
+            const response = await this.respondTo();
+            return response;
         } else if(this.role === "RECRUITER" && this.data.method as Method) {
-            await this.respondTo();
-            return { success: true};
+            const response = await this.respondTo();
+            return response;
         }
-        return { success: false};
     }
 }

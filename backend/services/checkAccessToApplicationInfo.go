@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-func CheckAccessToApplicationInfo(db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, _ := c.Get("userID")
-		userRole, _ := c.Get("userRole")
+func CheckAccessToApplicationInfo(db *sql.DB) func(*fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		userID := c.Locals("userID")
+		userRole := c.Locals("userRole")
 
 		var access bool
 		var query string
@@ -22,16 +22,19 @@ func CheckAccessToApplicationInfo(db *sql.DB) gin.HandlerFunc {
 			(SELECT 1 FROM "ResumeApplication" WHERE "recruiter_id" = $1 AND "status" = 'SUCCEEDED' AND "id" = $2)`
 		}
 
-		err := db.QueryRow(query, userID, c.Param("id")).Scan(&access)
+		err := db.QueryRow(query, userID, c.Params("id")).Scan(&access)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
 
 		if !access {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
-			c.Abort()
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{
+				"error": "Forbidden",
+			})
 		}
 
-		c.Next()
+		return c.Next()
 	}
 }

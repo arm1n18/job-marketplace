@@ -70,8 +70,12 @@ export default class AuthService {
                 return { success: true, data: response.data };
             }
         }catch (err) {
-            toast.warning((err as Error).toString());
-            return { success: false, error: (err as Error).toString() };
+            if (axios.isAxiosError(err) && err.response) {
+                toast.warning(err.response.data.error).toString();
+                return { success: false, error: err.response.data.error || 'Невідома помилка'};  
+            } else {
+                return { success: false, error: 'Невідома помилка' };
+            }
         }
     }
 

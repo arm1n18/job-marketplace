@@ -40,7 +40,8 @@ export const SideMenu: React.FC<Props> = ({ opened, setOpened, onClick, loading,
             document.body.style.overflow = '';
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [opened]);
+    }, [handleClickOutside]);
+    // was opened
 
     return (
         <>
@@ -71,7 +72,7 @@ export const SideMenu: React.FC<Props> = ({ opened, setOpened, onClick, loading,
                             </div>
                                 <Button className="max-w-md w-full mt-4"
                                     disabled={loading}
-                                    onClick={() =>{onClick("OFFER_PENDING"),
+                                    onClick={() =>{onClick("OFFER_PENDING");
                                     setOpened(!opened)}}>
                                         Запропонувати вакансію
                                 </Button>

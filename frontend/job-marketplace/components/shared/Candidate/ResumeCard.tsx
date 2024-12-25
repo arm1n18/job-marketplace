@@ -1,20 +1,19 @@
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { KeywordsType } from "@/types/types";
 import Link from "next/link";
 import { Resume } from "@/types";
+import ResumeService from "@/services/ResumeService";
+import { usePathname } from 'next/navigation';
 
 interface Props{
     data: Resume;
-    keywords: KeywordsType[];
     onClick?: () => void;
     className ?: string;
 }
 
 export const ResumeCard: React.FC<Props> = ({
     data,
-    keywords,
     onClick,
     className }) => {
 
@@ -23,6 +22,10 @@ export const ResumeCard: React.FC<Props> = ({
             event.stopPropagation();
             setIsExpanded(!isExpanded);
         }
+    
+    const router = usePathname();
+    const offerOrApplication = data.offerID != 0 ? "application" : "offer";
+    const responseID = data.offerID != 0 ? data.offerID : data.applicationID;
         
     return (
         <div 
@@ -30,14 +33,23 @@ export const ResumeCard: React.FC<Props> = ({
             onClick={onClick}
             style={{ cursor: 'pointer' }}
         >
+             {
+                data.jobTitle && (
+                    <>
+                        <h3 className="flex gap-1"><p className="text-common-selected">Вакансія: </p> <Link className="text-common-blue hover:underline" href={`/jobs/${data.jobID}`}> {data.jobTitle}</Link></h3>
+                        <div className="line-gray my-2" />
+                    </>
+                )
+            }
             <div className="w-full flex items-center justify-between mb-3">
-                <h2 className="text-title leading-none w-fit max-w-72"><Link href={`/candidates/${data.id}`} className="visited:text-[#4B1484]">{data.title}</Link></h2>
+            
+                <h2 className="text-title leading-none w-fit max-w-72"><Link href={router.startsWith("/candidates") ? `candidates/${data.id}` : `/response/candidate/${data.id}?${offerOrApplication}=${responseID}`} className="visited:text-[#4B1484] hover:underline">{data.title}</Link></h2>
                 <span className="text-salary leading-none ml-2">
                     {data.salary && `від $${data.salary} `}
                 </span>
             </div>
             <p className="text-common-sm leading-none mb-3">Україна 
-                {data.city_name && ` • ${data.city_name}`} • {data.experience} {data.experience! > 4 ? "років" : (data.experience! > 1 ? "роки" : "рік")} досвіду
+                {data.city_name && ` • ${data.city_name}`} • {ResumeService.formatExperience(data.experience!)}
                 • {data.subcategory_name || data.category_name}
                 </p>
 
@@ -59,13 +71,14 @@ export const ResumeCard: React.FC<Props> = ({
                 : null
             }
             
-            {keywords?.length ? (
+            {data.keywords?.length ? (
                 <>
                     <div className="line-gray my-3" />
-                    <div className="flex items-center gap-3 flex-wrap">
-                        {keywords.map((key, index) => (
-                            <span className="key-word-block" key={index}>{key.name}</span>
+                    <div className="flex items-center gap-1 flex-wrap">
+                        {data.keywords.slice(0, 10).map((keyword, index) => (
+                            <span className="key-word-block" key={index}>{keyword}</span>
                         ))}
+                        {data.keywords.length > 10 ? <span className="key-word-block">+{data.keywords.length - 10}</span> : null}
                     </div>
                 </>
             ) : null}

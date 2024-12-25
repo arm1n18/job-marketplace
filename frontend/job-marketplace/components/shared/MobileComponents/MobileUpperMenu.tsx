@@ -2,6 +2,7 @@ import { useAuth } from "@/components/hook/AuthContext";
 import { Button } from "@/components/ui/button";
 import { NoImgAvatars } from "@/components/ui/noImgAvatars";
 import { LogOut } from "lucide-react";
+import Image from 'next/image';
 import Link from "next/link";
 
 interface Props {
@@ -11,14 +12,14 @@ interface Props {
 }
 
 export const MobileUpperMenu: React.FC<Props> = ({ openedMobileMenu, setOpenedMobileMenu }) => {
-    const {role, avatarUrl, email} = useAuth();    
+    const {role, avatarUrl, email, loggedIn} = useAuth();    
     return (
         <>
             <div className={`my-auto bg-white w-full md:hidden py-4`}>
                 <Link href="/profile" className="flex gap-2 mx-4 mb-2">
                     {
                         avatarUrl ? 
-                        (<img src={avatarUrl} alt="avatar" className="rounded-full w-12 h-12" />) 
+                        (<Image src={avatarUrl} alt="avatar" className="rounded-full w-12 h-12" />) 
                         : (<NoImgAvatars className="rounded-full w-12 h-12 text-2xl" name={String(email)}/>)
                     }
                     <div className="flex flex-col my-auto overflow-hidden">
@@ -30,7 +31,9 @@ export const MobileUpperMenu: React.FC<Props> = ({ openedMobileMenu, setOpenedMo
                 <ul className="">
                     <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href={`${role == 'RECRUITER' ? '/jobs/my-vacancies' : '/jobs'}`}>Пошук вакансій</Link></li>
                     <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/candidates">Пошук кандидатів</Link></li>
-                    <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/inbox">Відгуки</Link></li>
+                    <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/company">Компанії</Link></li>
+                    <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/statistics">Статистика</Link></li>
+                    {loggedIn && <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/inbox">Відгуки</Link></li>}
                     {role === "RECRUITER" &&
                         <li className="hover:bg-[#F7F7F8] filters-block-mobile py-2 px-4" onClick={() => setOpenedMobileMenu(!openedMobileMenu)}><Link href="/jobs/create">Створити вакансію</Link></li>
                     }

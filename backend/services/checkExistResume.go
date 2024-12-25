@@ -4,33 +4,29 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-func UpdateResume(c *gin.Context) {
-	// сделать
-}
-
-func CheckExistResume(db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func CheckExistResume(db *sql.DB) func(*fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
 		var exists bool
 
-		userID, _ := c.Get("userID")
-		// log.Print(userID)
+		userID := c.Locals("userID")
 
 		query := `SELECT EXISTS(SELECT 1 FROM "Resume" WHERE "creator_id" = $1)`
 		err := db.QueryRow(query, userID).Scan(&exists)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Помилка запиту до бази даних",
+			})
 		}
 
 		if exists {
-			c.JSON(http.StatusConflict, gin.H{"message": "Резюме вже існує!"})
-			c.Abort()
-			return
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"message": "Резюме вже існує!",
+			})
 		}
 
-		c.Next()
+		return c.Next()
 	}
 }

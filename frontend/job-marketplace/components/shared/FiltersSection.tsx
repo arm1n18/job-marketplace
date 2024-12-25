@@ -4,7 +4,7 @@ import { Slider } from "@/components/ui/slider";
 import { useCallback, useState } from "react";
 import { Button } from "../ui/button";
 import { Check, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { categories, cities, employmentWithSubgroups, experience } from "../consts/filters-consts";
 import { useFiltersStore } from "@/store/useFiltersStore";
 import { FiltersType } from "@/types";
@@ -19,7 +19,6 @@ export const FiltersSection: React.FC<Props> = ({ className, onUpdateFilters }) 
     const [reset, setReset] = useState<boolean>(false);
     const [minValue, setMinValue] = useState([0]);
     const { filters, setFilters } = useFiltersStore();
-    const params = new URLSearchParams();
     const searchParams = useSearchParams();
 
     const experienceParam = searchParams.get('experience');
@@ -40,10 +39,12 @@ export const FiltersSection: React.FC<Props> = ({ className, onUpdateFilters }) 
             employment: '',
             salary_from: '',
         };
-        
+
         const url = new URL(window.location.toString());
         url.searchParams.delete('search');
         window.history.pushState({}, '', url.toString());
+
+        console.log(url.searchParams.toString());
         
         setMinValue([0]);
         setFilters(resetFilters);
@@ -99,7 +100,7 @@ export const FiltersSection: React.FC<Props> = ({ className, onUpdateFilters }) 
                             max={10000}
                             step={500}
                             className={"max-w-40 min-w-40"}
-                            onValueChange={(group) => {setMinValue(group), handleChange({salary_from: String(group)})}}
+                            onValueChange={(group) => {setMinValue(group); handleChange({salary_from: String(group)});}}
                         />
                     </div>
                 </div>

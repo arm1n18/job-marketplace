@@ -4,13 +4,12 @@ import (
 	"database/sql"
 	"log"
 	"os"
-	"time"
 
 	"backend/config"
 	"backend/routes"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -19,7 +18,9 @@ func main() {
 		log.Fatal("Ошибка загрузки .env файла")
 	}
 
-	r := gin.Default()
+	app := fiber.New(fiber.Config{
+		Prefork: true,
+	})
 
 	cfg := config.LoadDataBaseConfig()
 
@@ -31,25 +32,24 @@ func main() {
 	}
 	defer db.Close()
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://192.168.0.106:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://192.168.0.106:3000",
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin,Content-Type,Authorization",
+		ExposeHeaders:    "Content-Length",
 		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
 	}))
 
-	r.Use(func(c *gin.Context) {
-		log.Printf("Request: %s %s", c.Request.Method, c.Request.URL)
-		c.Next()
+	app.Use(func(c *fiber.Ctx) error {
+		log.Printf("Request: %s %s", c.Method(), c.Path())
+		return c.Next()
 	})
 
-	routes.InitRouter(r, db)
+	routes.InitRouter(app, db)
 
 	port := os.Getenv("PORT")
 
-	if err := r.Run(":" + port); err != nil {
+	if err := app.Listen(":" + port); err != nil {
 		panic(err)
 	}
 }

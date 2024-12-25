@@ -75,6 +75,7 @@ export default function CreateJob() {
                 <h1 className="text-title-dark my-12">Оформелення профілю</h1>
                 <div className="line-gray mb-12" />
                 <form className="lg:w-fit" onSubmit={handleSubmit}>
+                    {/* {Ім’я та прізвище рекрутера} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Ім’я та прізвище рекрутера</legend>
                         <div className="lg:w-[464px]">
@@ -85,6 +86,7 @@ export default function CreateJob() {
                             {errors.recruiter_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.recruiter_name}</p>}
                         </div>
                     </div>
+                    {/* {Назва команії} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Назва команії</legend>
                         <div className="lg:w-[464px]">
@@ -95,6 +97,7 @@ export default function CreateJob() {
                             {errors.company_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.company_name}</p>}
                         </div>
                     </div>
+                    {/* {Телефон} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Телефон</legend>
                         <div className="lg:w-[464px]">
@@ -105,6 +108,7 @@ export default function CreateJob() {
                             {errors.phone && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.phone}</p>}
                         </div>
                     </div>
+                    {/* {Аватар} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex gap-1">
                             <legend className="text-common-dark max-lg:mb-2">Аватар</legend>
@@ -117,6 +121,7 @@ export default function CreateJob() {
                             />
                         </div>
                     </div>
+                    {/* {Сайт компанії} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex gap-1">
                             <legend className="text-common-dark max-lg:mb-2">Сайт компанії</legend>
@@ -130,6 +135,7 @@ export default function CreateJob() {
                             {errors.web_site && formData.web_site != "" && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.web_site}</p>}
                         </div>
                     </div>
+                    {/* {LinkedIn} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex gap-1">
                             <legend className="text-common-dark max-lg:mb-2">LinkedIn</legend>
@@ -143,6 +149,7 @@ export default function CreateJob() {
                             {errors.linkedin && formData.linkedin != "" && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.linkedin}</p>}
                         </div>
                     </div>
+                    {/* {Facebook} */}
                     <div className="grid mb-12 lg:mb-24 lg:grid-cols-2">
                         <div className="flex gap-1">
                             <legend className="text-common-dark max-lg:mb-2">Facebook</legend>
@@ -156,7 +163,7 @@ export default function CreateJob() {
                             {errors.facebook && formData.facebook != "" && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.facebook}</p>}
                         </div>
                     </div>
-
+                    {/* {Про компанію} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex flex-col lg:max-w-56">
                             <legend className="text-common-dark max-lg:mb-2">Про компанію</legend>
@@ -170,7 +177,7 @@ export default function CreateJob() {
                             <div className="filters-text">{formData.about_us.length}/2000</div>
                         </div>
                     </div>
-                    
+                    {/* {Кнопки} */}
                     <div className="flex lg:justify-end gap-4">
                         <Button variant="outline" onClick={() => router.back()}>
                                 Скасувати

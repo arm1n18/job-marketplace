@@ -29,7 +29,7 @@ export default function JobsDetailPage({ params: { id } }: { params: { id: numbe
         }
 
     if (!job) {
-        return <><NothingFound type={"noJob"} /></>;
+        return <NothingFound type={"noJob"} />;
     }
 
     const handleResponse = (jobID: number, status: string) => {
@@ -48,13 +48,6 @@ export default function JobsDetailPage({ params: { id } }: { params: { id: numbe
             <JobMainCard
                 className="mt-12"
                 data={job}
-                keywords={[{ id: 1, name: 'Embedded' },
-                { id: 2, name: 'Linux' },
-                { id: 3, name: 'LinuxPostgreSQL' },
-                { id: 4, name: 'Windows Server' },
-                { id: 5, name: 'Python' },
-                { id: 6, name: 'Golang' },
-                ]}
                 route={job.application_id ? `offer` : `application`}
                 responseID={job.application_id ? job.application_id : job.offer_id}
                 isMainPage={true}

@@ -3,6 +3,8 @@ package job
 import (
 	"database/sql"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 type Job struct {
@@ -14,6 +16,7 @@ type Job struct {
 	Offer           string         `json:"offer"`
 	CategoryName    string         `json:"category_name"`
 	SubcategoryName *string        `json:"subcategory_name"`
+	Keywords        pq.StringArray `json:"keywords"`
 	CityName        *string        `json:"city_name"`
 	Experience      float64        `json:"experience"`
 	EmploymentName  string         `json:"employment_name"`

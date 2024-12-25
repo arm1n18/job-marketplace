@@ -14,7 +14,6 @@ export default class JWTService {
                 toast.warning(error.response?.data.message);
             }
             if(error.response.status === 401 && this.getAccessToken()) {
-                // console.log("Token expired, refreshing...");
                 if (this.retryCount < 2) {
                     this.retryCount++;
                     const refreshResponse = await this.refreshAccessToken();
@@ -29,7 +28,6 @@ export default class JWTService {
     }
 
     private static async refreshAccessToken() {
-        // console.log("Old Token:", this.getAccessToken());
         try {
             const response = await axios.get(`http://192.168.0.106:8080/auth/refresh-token`, {
                 headers: {
@@ -38,7 +36,6 @@ export default class JWTService {
                 withCredentials: true,
             });
             if (response.data && response.data.token) {
-                console.log("New Token:", response.data.token);
                 localStorage.setItem("access_token", response.data.token);
                 this.retryCount = 0;
             }

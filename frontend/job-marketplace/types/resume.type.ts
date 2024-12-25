@@ -16,7 +16,7 @@ export interface Resume {
   experience?: number;
   employment_name?: string;
   city_name?: string;
-  keywords?: KeywordsType[];
+  keywords?: string[];
   status?: any;
   offerID?: number;
   applicationID?: number;

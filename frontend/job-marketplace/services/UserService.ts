@@ -14,10 +14,7 @@ export default class UserService {
     setSelectedData: (data: any) => void;
     private setLoading: (loading: boolean) => void;
 
-    private JWTService: JWTService
-
     constructor(userData: UserData) {
-        this.JWTService = new JWTService();
         this.url = userData.url;
         this.setData = userData.setData;
         this.setSelectedData = userData.setSelectedData;

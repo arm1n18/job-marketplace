@@ -11,7 +11,7 @@ import (
 func CheckValidUser(db *sql.DB, email string, role database.Role) (bool, error) {
 	exists, _ := IsEmailExist(db, email)
 	if exists {
-		return false, errors.New("Пользователь с таким email уже существует")
+		return false, errors.New("Користувач з таким email вже існує")
 	}
 
 	if !IsCorrectRole(role) {

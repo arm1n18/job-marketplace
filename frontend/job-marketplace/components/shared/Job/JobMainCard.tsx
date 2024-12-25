@@ -2,22 +2,21 @@
 
 import { ApplyButton, KeyWord, NoImgAvatars, ParametersLine, ResponseButtonsSection, SectionDescription, AlertDialog, BreadCrumb, Button } from "@/components/ui";
 import { cn, copyURL } from "@/lib";
-import { EllipsisVertical, PencilLine, Share2, Trash2, User } from "lucide-react";
+import { Share2, User } from "lucide-react";
 import { useAuth, useWindowWidth, useOpenedRef } from "@/components/hook";
-import { KeywordsType, ResponseDataType } from "@/types";
+import { ResponseDataType } from "@/types";
 import Link from "next/link";
 import ApplyService from "@/services/ApplyService";
 import { Job } from "@/types/job.type";
 import { useRef, useState } from "react";
 import { Method } from "@/types/response.type";
 import JobsService from "@/services/JobsService";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { EllipsisMenu } from "@/components/ui/EllipsisMenu";
 
 
 interface Props{
     data: Job;
-    keywords: KeywordsType[];
     keyInfo?: string[];
     onApplyClick: (jobID: number, status: string) => void;
     jobStatus: string;
@@ -34,14 +33,13 @@ const methods: { [key: string]: string } = {
 }
 
 
-export const JobMainCard: React.FC<Props> = ({ data, keywords, className, jobStatus, isMainPage, onApplyClick, responseID, route}) => {
+export const JobMainCard: React.FC<Props> = ({ data, className, jobStatus, isMainPage, onApplyClick, responseID, route}) => {
     const { role, id, loggedIn } = useAuth();
     const [ loading, setLoading ] = useState(false);
     const screenWidth = useWindowWidth();
     const [ isOpen, setIsOpen ] = useState<boolean>(false);
     const [openedAlert, setOpenedAlert] = useState<boolean>(false);
     const openedRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
 
     useOpenedRef({isOpen: isOpen, setIsOpen: setIsOpen, openedRef});
 
@@ -59,7 +57,7 @@ export const JobMainCard: React.FC<Props> = ({ data, keywords, className, jobSta
         setLoading(true);
         try {
             const response = await applyJobs.respond();
-            if (response.success) {
+            if (response?.success) {
                 onApplyClick(data.id!, status);
             }
         } catch (error) {
@@ -77,7 +75,7 @@ export const JobMainCard: React.FC<Props> = ({ data, keywords, className, jobSta
                     setOpened={setOpenedAlert}
                     title="Ви впевнені?"
                     description="Ця дія призведе до видалення вакансії, всіх пов'язних з нею відгуків та запропонованих пропозицій."
-                    onConfirm={async () => {JobsService.deleteJob(data.id!), setOpenedAlert(false)}}
+                    onConfirm={async () => {JobsService.deleteJob(data.id!); setOpenedAlert(false);}}
                 />
             )}
             <div className={cn("flex-grow md:border md:border-[#D0D5DD] rounded-lg sticky max-md:p-4 p-8", className)}>
@@ -88,7 +86,7 @@ export const JobMainCard: React.FC<Props> = ({ data, keywords, className, jobSta
                                 <Link href={`/company/${data.company_name!.replace(' ', '-')}`}>
                                     {
                                         data.image_url ? (
-                                            <img className="rounded-xl size-12 md:size-16 object-cover " loading="lazy" src={data.image_url} alt={`${data.company_name} logo`} />
+                                            <Image className="rounded-xl size-12 md:size-16 object-cover" width={256} height={256} loading="lazy" src={data.image_url} alt={`${data.company_name} logo`} />
                                         ) : (<NoImgAvatars className="rounded-xl size-12 md:size-16 text-2xl" name={data.company_name!} />)
                                     }
                                 </Link>
@@ -105,7 +103,7 @@ export const JobMainCard: React.FC<Props> = ({ data, keywords, className, jobSta
                                 </div>
                             </div>
                             <div className="flex flex-col justify-center gap-3">
-                                <h2 className="text-title-bg leading-none">{data.title}</h2>
+                                <h2 className="text-title-bg leading-none hover:underline"><Link href={`/jobs/${data.id}`}>{data.title}</Link></h2>
                                 <Link className="text-common-sm hover:underline leading-none gap-1 w-fit hidden md:flex" href={`/company/${data.company_name!.replace(' ', '-')}`}>
                                     {data.company_name}
                                     <User className="size-3" strokeWidth={3} />
@@ -146,11 +144,11 @@ export const JobMainCard: React.FC<Props> = ({ data, keywords, className, jobSta
                         {data.salary_to != 0 && data.salary_to &&`до $${data.salary_to}`}
                     </span>
                 </div>
-                {keywords?.length ? (
+                {data.keywords?.length ? (
                     <>
                         <div className="flex items-center gap-3 flex-wrap">
-                            {keywords.map((keyword) => (
-                                <KeyWord className="key-word-block-bg" key={keyword.id} keyword={keyword.name} />
+                            {data.keywords.map((keyword, index) => (
+                                <KeyWord className="key-word-block-bg" key={index} keyword={keyword} />
                             ))}
                         </div>
                     </>
@@ -215,8 +213,9 @@ export const JobMainCard: React.FC<Props> = ({ data, keywords, className, jobSta
                                         ) : (
                                             <ResponseButtonsSection
                                                 className="w-full"
-                                                id={data.application_id!}
                                                 status={jobStatus}
+                                                route={route}
+                                                id={responseID}
                                                 loading={loading}    
                                                 onClick={(status) => handleResponseClick(status)}
                                             />

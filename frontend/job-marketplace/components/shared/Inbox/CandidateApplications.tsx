@@ -16,7 +16,7 @@ interface ApplicationsProps {
     className?: string
 }
 
-export const CandidateApplications: React.FC<ApplicationsProps> = ({ setSelectedJob, selectedJob, applications, loading, search, className }) => {
+export const CandidateApplications: React.FC<ApplicationsProps> = ({ setSelectedJob, selectedJob, applications, loading, search }) => {
     const screenWidth = useWindowWidth();
     const router = useRouter();
     
@@ -33,8 +33,14 @@ export const CandidateApplications: React.FC<ApplicationsProps> = ({ setSelected
                         (application.company_name!.toLowerCase().includes(search.toLowerCase()) || application.title!.toLowerCase().includes(search.toLowerCase())) ? (
                             <JobCard
                             className={`${index != applications.length - 1 ? 'mb-3' : ''} ${selectedJob === application && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
-                            key={application.id}
-                            onClick={() => {screenWidth > 768 ? setSelectedJob(application) : router.push(`/jobs/${application.id}`)}}
+                            key={index}
+                            onClick={() => {
+                                if (screenWidth > 768) {
+                                    setSelectedJob(application);
+                                } else {
+                                    router.push(`/jobs/${application.id}`);
+                                }
+                            }}                              
                             data={application}
                             keyInfo={[
                                 application.city_name || "Україна",
@@ -46,7 +52,7 @@ export const CandidateApplications: React.FC<ApplicationsProps> = ({ setSelected
                                         ]}
                                     />
                                     
-                                ):<div className="absolute flex items-center justify-center left-0 right-0"><NothingFound type="notFound" /></div>) 
+                                ):<div key={index} className="absolute flex items-center justify-center left-0 right-0"><NothingFound type="notFound" /></div>) 
                             ) 
                         )}
             </div>
@@ -62,14 +68,6 @@ export const CandidateApplications: React.FC<ApplicationsProps> = ({ setSelected
                                 jobStatus={selectedJob.status.String}
                                 route="application"
                                 responseID={selectedJob.application_id}
-                                keywords={[
-                                { id: 1, name: 'Embedded' },
-                                { id: 2, name: 'Linux' },
-                                { id: 3, name: 'LinuxPostgreSQL' },
-                                { id: 4, name: 'Windows Server' },
-                                { id: 5, name: 'Python' },
-                                { id: 6, name: 'Golang' },
-                                ]}
                             />
                         )
                     )

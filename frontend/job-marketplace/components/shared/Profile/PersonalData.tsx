@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { NoImgAvatars } from "@/components/ui/noImgAvatars";
 import { ProfileType } from "@/types/profile.type";
 import { CircleAlert, Upload } from "lucide-react";
+import Image from 'next/image';
 import { useState } from "react";
 
 interface Props {
@@ -13,15 +14,15 @@ interface Props {
     className?: string,
 }
 
-export const PersonalData: React.FC<Props> = ({ data, className }) => {
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+export const PersonalData: React.FC<Props> = ({ data }) => {
+    const [errors] = useState<{ [key: string]: string }>({});
     const { avatarUrl, email } = useAuth();
 
     return (
         <div className="flex flex-col md:gap-12 md:flex-row">
             <div>
                 <div className="w-full mb-6 lg:w-[464px]">
-                    <label className="text-common-dark">Ім'я та прізвище</label>
+                    <label className="text-common-dark">Ім&apos;я та прізвище</label>
                     <Input className={`w-full ${errors.name && "border-red-500"} bg-[#F9FAFB] mt-2`}
                         placeholder="Микола Шевченко"
                         defaultValue={data?.name}
@@ -56,7 +57,7 @@ export const PersonalData: React.FC<Props> = ({ data, className }) => {
             </div>
             <div className="mt-12 w-fit md:mt-0">
                 {avatarUrl ? 
-                (<img src={avatarUrl} alt="avatar" className="rounded-full w-48 h-48" />) 
+                (<Image src={avatarUrl} alt="avatar" className="rounded-full w-48 h-48"  width={1024} height={1024}/>) 
                 : (<NoImgAvatars className="rounded-full w-48 h-48 text-6xl" name={String(email)}/>)}
                 <div className="flex justify-center gap-3 items-center mt-6 text-[#1C64EE] font-medium cursor-pointer">
                     <Upload color="#1C64EE" size={16} strokeWidth={3}/>Завантажити фото

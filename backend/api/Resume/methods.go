@@ -8,34 +8,32 @@ import (
 
 	"backend/handlers"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 )
 
-func (r *ResumeStruct) GetResumes(c *gin.Context, db *sql.DB) {
+func (r *ResumeStruct) GetResumes(c *fiber.Ctx, db *sql.DB) error {
 	params := handlers.GetSearchParams(c)
-	userID, _ := c.Get("userID")
 	var resumes []Resume
 
-	query := (`
-	SELECT r.ID, r.creator_id, r.Title, r.work_experience AS WorkExperience, r.Achievements,
+	query := (`SELECT DISTINCT
+	r.ID, r.creator_id, r.Title, r.work_experience AS WorkExperience, r.Achievements,
 	c.Name AS CategoryName,
 	s.Name AS SubcategoryName,
+	r.key_words,
 	ct.Name AS CityName,
 	r.Experience, e.Name AS EmploymentName,
-	r.salary, r.created_at, r.updated_at, ja.status
+	r.salary, r.created_at, r.updated_at
 	FROM "Resume" r
 	LEFT JOIN "Category" c ON r.category_id = c.ID
 	LEFT JOIN "Subcategory" s ON r.subcategory_id = s.ID
 	LEFT JOIN "City" ct ON r.city_id = ct.ID
 	LEFT JOIN "Employment" e ON r.employment_id = e.ID
 	LEFT JOIN "User" u ON r.creator_id = u.ID
-	LEFT JOIN "JobApplication" ja ON ja.candidate_id = r.creator_id AND ja.recruiter_id = $1
 	WHERE TRUE
 	`)
 
 	var queryParams []interface{}
-	queryParams = append(queryParams, userID)
 
 	argID := 2
 
@@ -89,36 +87,39 @@ func (r *ResumeStruct) GetResumes(c *gin.Context, db *sql.DB) {
 	rows, err := db.Query(query, queryParams...)
 	if err != nil {
 		log.Printf("Помилка виконання запиту: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Помилка запиту до бази даних",
+		})
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		resume := Resume{}
 		err := rows.Scan(&resume.ID, &resume.CreatorID, &resume.Title, &resume.WorkExperience,
-			&resume.Achievements, &resume.CategoryName, &resume.SubcategoryName, &resume.CityName,
-			&resume.Experience, &resume.EmploymentName, &resume.Salary, &resume.CreatedAt, &resume.UpdatedAt, &resume.Status)
+			&resume.Achievements, &resume.CategoryName, &resume.SubcategoryName, &resume.Keywords, &resume.CityName,
+			&resume.Experience, &resume.EmploymentName, &resume.Salary, &resume.CreatedAt, &resume.UpdatedAt)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, resume)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error scanning resumes",
+			})
 		}
 		resumes = append(resumes, resume)
 	}
 
-	c.JSON(http.StatusOK, resumes)
+	return c.Status(fiber.StatusOK).JSON(resumes)
 }
 
-func (r *ResumeStruct) GetResumeByID(c *gin.Context, db *sql.DB) {
+func (r *ResumeStruct) GetResumeByID(c *fiber.Ctx, db *sql.DB) error {
 	var resume Resume
-	idStr := c.Param("id")
+	idStr := c.Params("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
 
 	query := `
 	SELECT r.ID, r.creator_id, r.Title, r.work_experience AS WorkExperience, r.Achievements,
 	       c.Name AS CategoryName,
 	       s.Name AS SubcategoryName,
+		   r.key_words,
 	       ct.Name AS CityName,
 	       r.Experience, e.Name AS EmploymentName,
 	       r.salary, r.created_at, r.updated_at
@@ -133,29 +134,32 @@ func (r *ResumeStruct) GetResumeByID(c *gin.Context, db *sql.DB) {
 
 	row := db.QueryRow(query, id)
 	err := row.Scan(&resume.ID, &resume.CreatorID, &resume.Title, &resume.WorkExperience, &resume.Achievements,
-		&resume.CategoryName, &resume.SubcategoryName, &resume.CityName, &resume.Experience,
+		&resume.CategoryName, &resume.SubcategoryName, &resume.Keywords, &resume.CityName, &resume.Experience,
 		&resume.EmploymentName, &resume.Salary, &resume.CreatedAt, &resume.UpdatedAt)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
-			return
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{
+				"error": "Resume not found",
+			})
 		}
 		log.Printf("Помилка виконання запиту: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Помилка запиту до бази даних",
+		})
 	}
 
-	c.JSON(http.StatusOK, resume)
+	return c.Status(fiber.StatusOK).JSON(resume)
 }
 
-func (r *ResumeStruct) CreateResume(c *gin.Context, db *sql.DB) {
+func (r *ResumeStruct) CreateResume(c *fiber.Ctx, db *sql.DB) error {
 	var resume ResumeCreate
 	var categoryID, subcategoryID, employmentID, cityID, userID *int
 
-	if err := c.ShouldBindJSON(&resume); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.BodyParser(&resume); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	var nullableSubcategoryName, nullableCityName *string
@@ -183,8 +187,9 @@ func (r *ResumeStruct) CreateResume(c *gin.Context, db *sql.DB) {
 	rows, err := db.Query(query, nullableSubcategoryName, resume.EmploymentName, nullableCityName, resume.Email, resume.CategoryName)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	defer rows.Close()
@@ -192,14 +197,16 @@ func (r *ResumeStruct) CreateResume(c *gin.Context, db *sql.DB) {
 	if rows.Next() {
 		err = rows.Scan(&categoryID, &subcategoryID, &employmentID, &cityID, &userID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	query = `INSERT INTO "Resume" ("creator_id", "title", "work_experience", "achievements",
@@ -224,20 +231,24 @@ func (r *ResumeStruct) CreateResume(c *gin.Context, db *sql.DB) {
 		categoryID, nullableSubcategoryID, nullableCityID, resume.Experience, employmentID, resume.Salary).Scan(&resumeID)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"id": resumeID})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"id": resumeID,
+	})
 }
 
-func (r *ResumeStruct) UpdateResume(c *gin.Context, db *sql.DB) {
+func (r *ResumeStruct) UpdateResume(c *fiber.Ctx, db *sql.DB) error {
 	var resume ResumeCreate
-	userID, _ := c.Get("userID")
+	userID := c.Locals("userID")
 
-	if err := c.ShouldBindJSON(&resume); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.BodyParser(&resume); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	var nullableSubcategoryName, nullableCityName *string
@@ -259,6 +270,7 @@ func (r *ResumeStruct) UpdateResume(c *gin.Context, db *sql.DB) {
 			"category_id" = (SELECT id FROM "Category" WHERE "name" = $4), 
 			"subcategory_id" = (SELECT id FROM "Subcategory" WHERE "name" = $5),
 			"city_id" = (SELECT id FROM "City" WHERE "name" = $6), 
+			"key_words" = $12,
 			"experience" = $7, 
 			"employment_id" = (SELECT id FROM "Employment" WHERE "name" = $8), 
 			"salary" = $9, "updated_at" = NOW()
@@ -266,13 +278,16 @@ func (r *ResumeStruct) UpdateResume(c *gin.Context, db *sql.DB) {
 
 	_, err := db.Exec(query, resume.Title, resume.WorkExperience, resume.Achievements,
 		resume.CategoryName, nullableSubcategoryName, nullableCityName, resume.Experience,
-		resume.EmploymentName, resume.Salary, userID, resume.ID)
+		resume.EmploymentName, resume.Salary, userID, resume.ID, resume.Keywords)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		log.Print(err)
-		return
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Resume updated successfully"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Resume updated successfully",
+	})
 }

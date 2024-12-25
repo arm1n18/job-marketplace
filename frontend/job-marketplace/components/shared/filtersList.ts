@@ -1,5 +1,6 @@
 export const filtersList = (searchParams: URLSearchParams) => {
     return {
+        page: searchParams.get('page') ?? '',
         category: searchParams.get('category') ?? '',
         subcategory: searchParams.get('subcategory') ?? '',
         experience: searchParams.get('experience') ?? '',

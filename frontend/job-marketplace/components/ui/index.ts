@@ -23,3 +23,4 @@ export { SectionDescription } from "./section-description";
 export { SmallBannerSection } from "./small-banner-section";
 export { StatusBadge } from "./statusBadge";
 export { Textarea } from "./textarea";
+export { KeywordsInput } from "./keywordsInput";

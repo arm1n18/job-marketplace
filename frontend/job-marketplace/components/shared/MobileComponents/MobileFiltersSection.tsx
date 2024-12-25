@@ -1,6 +1,7 @@
 'use client';
 
 import { categories, cities, employment, experience } from "@/components/consts/filters-consts";
+import { useWindowWidth } from "@/components/hook";
 import { Button } from "@/components/ui/button";
 import { CheckBoxesSection } from "@/components/ui/checkBoxesSection";
 import { FilterMobile } from "@/components/ui/FilterMobile";
@@ -24,16 +25,17 @@ export const MobileFiltersSection: React.FC<Props> = ({ onUpdateFilters }) => {
     const [minValue, setMinValue] = useState([0]);
     const { filters, setFilters } = useFiltersStore();
     const searchParams = useSearchParams();
+    const screenWidth = useWindowWidth();
     
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            if(opened) {
+            if(opened && screenWidth < 768) {
                 document.body.style.overflow = 'hidden';
             } else {
                 document.body.style.overflow = '';
             }
         }
-    }, [opened]);
+    }, [opened, screenWidth]);
 
     const experienceParam = searchParams.get('experience');
     const yearsFormat = experienceParam != null && experienceParam !== "" ?
@@ -90,7 +92,7 @@ export const MobileFiltersSection: React.FC<Props> = ({ onUpdateFilters }) => {
                             value={[Number(filters.salary_from) || Number(searchParams.get('salary_from')) || minValue[0]]}
                             max={10000}
                             step={500}
-                            onValueChange={(value) => {setMinValue(value), handleChange({salary_from: String(value[0])})}}
+                            onValueChange={(value) => {setMinValue(value); handleChange({salary_from: String(value[0])});}}
                         />
                     </div>
                     <div className="flex flex-col justify-between border-y border-[#D0D5DD]">
@@ -128,7 +130,7 @@ export const MobileFiltersSection: React.FC<Props> = ({ onUpdateFilters }) => {
                     <div className="fixed bottom-0 w-full bg-white pb-8 pt-6 border-t border-[#D0D5DD]">
                         <div className="flex gap-8 px-4 mb-2">
                             <div className="text-common-blue my-auto hover:cursor-pointer" onClick={handleReset}>Скинути</div>
-                            <Button className="w-full" onClick={() => {onUpdateFilters({ ...filters}), setOpened(false)}}>
+                            <Button className="w-full" onClick={() => {onUpdateFilters({ ...filters}); setOpened(false);}}>
                                 Застосувати
                             </Button>
                         </div>

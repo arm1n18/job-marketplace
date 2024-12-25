@@ -6,13 +6,13 @@ import { CandidateApplications, CandidateOffers, RecruiterOffers, RecruiterAppli
 import { NothingFound } from "@/components/shared/nothingFound";
 import { Input } from "@/components/ui/input";
 import FetchDataService from "@/services/FetchDataService";
-import { Job } from "@/types";
+import { Job, Resume } from "@/types";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export interface Data {
-    applications: Job[] | null;
-    offers: Job[] | null;
+    applications: (Job | Resume)[] | null;
+    offers: (Job | Resume)[] | null;
 }
 
 export default function InboxPage() {
@@ -21,11 +21,11 @@ export default function InboxPage() {
     const [section, setSection] = useState(0);
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<Data | null>(null);
-    const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+    const [selectedData, setSelectedData] = useState<Job | Resume | null>(null)
     const sectionNames = [`Відгуки ${data?.applications ? data.applications?.length : '0'}`, `Пропозиції ${data?.offers ? data.offers?.length : '0'}`, "Пропозиції"];
 
     useEffect(() => {
-        const getInbox = new FetchDataService({url: "inbox/", doubleData: true, setLoading, setData: setData, setSelectedData: setSelectedJob});
+        const getInbox = new FetchDataService({url: "inbox/", doubleData: true, setLoading, setData: setData, setSelectedData: setSelectedData});
         getInbox.getData();
     }, []);
 
@@ -36,11 +36,11 @@ export default function InboxPage() {
                     <div className="flex gap-4 w-full rounded-md">
                         <div className="flex gap-2">
                             <div className={`${section == 0 ? "filters-block-selected" : "filters-block"} flex w-full`}
-                                onClick={() => {setSection(0),
-                                setSelectedJob(data?.applications?.[0] ?? null)
+                                onClick={() => {setSection(0);
+                                setSelectedData(data?.applications?.[0] ?? null)
                             }
                             }>Відгуки</div>
-                            <div className={`${section == 1 ? "filters-block-selected" : "filters-block"} flex w-full`} onClick={() => {setSection(1), setSelectedJob(data?.offers?.[0] ?? null)}}>Пропозиції</div>
+                            <div className={`${section == 1 ? "filters-block-selected" : "filters-block"} flex w-full`} onClick={() => {setSection(1); setSelectedData(data?.offers?.[0] ?? null)}}>Пропозиції</div>
                         </div>
                         <div className="relative flex-grow">
                             <Input
@@ -66,16 +66,16 @@ export default function InboxPage() {
                             (
                                 role == "CANDIDATE" ?
                                 (<CandidateApplications
-                                    setSelectedJob={setSelectedJob}
-                                    selectedJob={selectedJob}
-                                    applications={data?.applications ?? []}
+                                    setSelectedJob={setSelectedData as React.Dispatch<React.SetStateAction<Job | null>>}
+                                    selectedJob={selectedData as Job}
+                                    applications={(data?.applications ?? []) as Job[]}
                                     search={search}
                                     loading={loading}
                                 />) : (
                                     <RecruiterApplications
-                                        setSelectedResume={setSelectedJob}
-                                        selectedResume={selectedJob}
-                                        applications={data?.applications ?? []}
+                                        setSelectedResume={setSelectedData as React.Dispatch<React.SetStateAction<Resume | null>>}
+                                        selectedResume={selectedData as Resume}
+                                        applications={(data?.applications ?? []) as Resume[]}
                                         search={search}
                                         loading={loading}
                                     />
@@ -91,18 +91,18 @@ export default function InboxPage() {
                                         <CandidateOffers
                                             setData={setData}
                                             data={data}
-                                            setSelectedJob={setSelectedJob}
-                                            selectedJob={selectedJob}
-                                            applications={data?.offers ?? []}
+                                            setSelectedJob={setSelectedData as React.Dispatch<React.SetStateAction<Job | null>>}
+                                            selectedJob={selectedData as Job}
+                                            applications={(data?.offers ?? []) as Job[]}
                                             search={search}
                                             loading={loading}
                                         />
                                     ) : (
                                         <RecruiterOffers
                                             setData={setData}
-                                            setSelectedResume={setSelectedJob}
-                                            selectedResume={selectedJob}
-                                            offers={data?.offers ?? []}
+                                            setSelectedResume={setSelectedData as React.Dispatch<React.SetStateAction<Resume | null>>}
+                                            selectedResume={selectedData as Resume}
+                                            offers={(data?.offers ?? []) as Resume[]}
                                             search={search}
                                             loading={loading}
                                         />

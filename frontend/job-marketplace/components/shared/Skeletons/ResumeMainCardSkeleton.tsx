@@ -6,7 +6,7 @@ interface Props{
     className ?: string;
 }
 
-export const ResumeMainCardSkeleton: React.FC<Props> = ({ isMainPage, className }) => {
+export const ResumeMainCardSkeleton: React.FC<Props> = ({ className }) => {
     return (
         <>  
             <div className={cn("flex-grow md:bg-[#F7F7F8] md:border md:border-[#D0D5DD] rounded-lg sticky max-sm:p-4 p-8", className)}>

@@ -6,6 +6,7 @@ export const useQueryParams = (searchFilter: string | null, filters?: FiltersTyp
         const params = new URLSearchParams();
         if(searchFilter) params.append('search', searchFilter);
         if(filters) {
+            if(filters.page) params.append('page', filters.page);
             if(filters.category) params.append('category', filters.category);
             if(filters.subcategory) params.append('subcategory', filters.subcategory);
             if(filters.experience) params.append('experience', filters.experience);

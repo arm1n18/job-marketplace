@@ -5,6 +5,7 @@ import { StackSection } from "@/components/shared/stackSection";
 import { Button } from "@/components/ui/button";
 import { SmallBannerSection } from "@/components/ui/small-banner-section";
 import Link from "next/link";
+import Image from 'next/image';
 import { useRouter } from "next/navigation";
 
 
@@ -52,9 +53,9 @@ export default function Home() {
           {/* <div className="text-center">
             <h1 className="text-5xl font-bold mb-12 max-lg:text-4xl">Трохи статистики</h1>
             <div className="sm:flex gap-[10px] w-full grid-flow-col">
-              <img className="sm:max-w-[420px] mx-auto min-w-44 hover:-scale-[-1.02] transition-all max-sm:mb-4 max-sm:max-w-96" src="/images/banners/vacansies-published.png" alt="" />
-              <img className="sm:max-w-[420px] mx-auto min-w-44 hover:-scale-[-1.02] transition-all max-sm:mb-4 max-sm:max-w-96" src="/images/banners/companies-registrated.png" alt="" />
-              <img className="sm:max-w-[420px] mx-auto min-w-44 hover:-scale-[-1.02] transition-all max-sm:max-w-96" src="/images/banners/candidates-registrated.png" alt="" />
+              <Image className="sm:max-w-[420px] mx-auto min-w-44 hover:-scale-[-1.02] transition-all max-sm:mb-4 max-sm:max-w-96" src="/images/banners/vacansies-published.png" alt="" />
+              <Image className="sm:max-w-[420px] mx-auto min-w-44 hover:-scale-[-1.02] transition-all max-sm:mb-4 max-sm:max-w-96" src="/images/banners/companies-registrated.png" alt="" />
+              <Image className="sm:max-w-[420px] mx-auto min-w-44 hover:-scale-[-1.02] transition-all max-sm:max-w-96" src="/images/banners/candidates-registrated.png" alt="" />
             </div>
           </div> */}
           {/* <div className="bg-[var(--blue-primary)] h-72 flex justify-between rounded-lg mb-3 overflow-hidden">
@@ -63,10 +64,10 @@ export default function Home() {
               <p className="text-lg text-white">Хутчіш створювати профіль та резюме</p>
               <Button variant={'secondary'} onClick={() => console.log('Redirect to register')}>Створити профіль</Button>
             </div>
-            <img src="images/icons/Cube.png" alt="Memo" className="h-80 relative right-0 top pointer-events-none" />
+            <Image src="images/icons/Cube.png" alt="Memo" className="h-80 relative right-0 top pointer-events-none" />
           </div> */}
         <div className="mt-48">
-          <img src="/images/find-work.png" alt="find-work-img" className="md:w-1/2 m-auto"/>
+          <Image src="/images/find-work.png" alt="find-work-img" width={512} height={512} className="md:w-1/2 m-auto"/>
         </div>
         </Container>
       </div>

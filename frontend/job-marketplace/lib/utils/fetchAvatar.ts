@@ -2,7 +2,7 @@ import axios from "axios";
 import { Dispatch, SetStateAction } from "react";
 
 export const fetchAvatar = async (setAvatarUrl: Dispatch<SetStateAction<string | null>>, role: string) => {
-    let accessToken = localStorage.getItem("access_token") || "";
+    const accessToken = localStorage.getItem("access_token") || "";
     const storedImageUrl = localStorage.getItem("image_url");
 
     if(!storedImageUrl && role == "RECRUITER") {
@@ -19,6 +19,7 @@ export const fetchAvatar = async (setAvatarUrl: Dispatch<SetStateAction<string |
             console.log("Fetching avatar...");
         } catch (error) {
             setAvatarUrl(null);
+            console.error("Error fetching avatar:", error);
         }
     } else {
         setAvatarUrl(storedImageUrl);

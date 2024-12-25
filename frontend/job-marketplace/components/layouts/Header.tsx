@@ -10,6 +10,7 @@ import { Menu } from "lucide-react";
 import { AuthButtons } from "../shared/AuthButtons";
 import { useWindowWidth } from "../hook/useWindowWidth";
 import { MobileUpperMenu } from "../shared/MobileComponents";
+import Image from "next/image";
 
 interface Props {
     className ?: string;
@@ -38,12 +39,13 @@ export const Header: React.FC<Props> = ({ className }) => {
                             </div>
                         }
                         <div className="gap-8 flex">
-                            <Link className="mx-auto" href="/"><img src="/images/logo/joobly-logo-blue.svg" alt="joobly-logo" className="h-8" draggable="false"/></Link>     
+                            <Link className="mx-auto" href="/"><Image src="/images/logo/joobly-logo-blue.svg" alt="joobly-logo" width={100} height={32} draggable="false"/></Link>     
                             <ul className="flex items-center gap-8 max-md:hidden h-full my-auto">
                                 <li><Link className="text-common-dark hover:text-[#1C64EE]" href={`${role == 'RECRUITER' ? '/jobs/my-vacancies' : '/jobs'}`}>Вакансії</Link></li>
                                 <li><Link className="text-common-dark hover:text-[#1C64EE]" href="/candidates">Кандидати</Link></li>
                                 {loggedIn && <li><Link className="text-common-dark hover:text-[#1C64EE]" href="/inbox">Відгуки</Link></li>}
                                 <li><Link className="text-common-dark hover:text-[#1C64EE]" href="/company">Компанії</Link></li>
+                                <li><Link className="text-common-dark hover:text-[#1C64EE]" href="/statistics">Статистика</Link></li>
                             </ul>
                         </div>
                         <div className="flex float-right items-center">

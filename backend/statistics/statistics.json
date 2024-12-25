@@ -1,0 +1,46 @@
+{
+    "statistics": {
+        "totalJobs": 6,
+        "avgJobSalary": 1000,
+        "avgJobExperience": 1.5,
+        "totalCandidates": 3,
+        "avgCandidateSalary": 1800,
+        "avgCandidateExperience": 2.5,
+        "totalApplications": 1,
+        "totalAcceptedApplications": 1,
+        "percentageOfApplications": 100,
+        "moreJobsByCategory": [
+            {
+                "name": "JavaScript / Front-End",
+                "count": 3
+            },
+            {
+                "name": "C / C++ / Embedded",
+                "count": 1
+            },
+            {
+                "name": "Java",
+                "count": 1
+            }
+        ],
+        "higherSalaryByCategory": [
+            {
+                "name": "C / C++ / Embedded",
+                "avgSalary": 2000
+            },
+            {
+                "name": "Golang",
+                "avgSalary": 1000
+            },
+            {
+                "name": "JavaScript / Front-End",
+                "avgSalary": 750
+            }
+        ]
+    },
+    "difference": {
+        "jobsDifference": 6,
+        "candidatesDifference": 3,
+        "applicationsDifference": 100
+    }
+}

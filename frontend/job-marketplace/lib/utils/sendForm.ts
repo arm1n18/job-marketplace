@@ -6,7 +6,7 @@ interface Props {
     url: string;
     redirectURL?: string;
     data: {[key: string]: string | number | File} | FormData;
-    setLoading: any;
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     router: ReturnType<typeof useRouter>;
     message: string;
 }
@@ -14,7 +14,7 @@ interface Props {
 export const sendForm = async ({url, redirectURL, data, setLoading, router, message}: Props) => {
     setLoading(true);
 
-    let accessToken = localStorage.getItem("access_token") || "";
+    const accessToken = localStorage.getItem("access_token") || "";
     try {
         const response = await axios.post(`http://192.168.0.106:8080/${url}`, data ,{
             headers: {
@@ -30,8 +30,7 @@ export const sendForm = async ({url, redirectURL, data, setLoading, router, mess
             }
         }
         return response;
-    } catch (error: any) {
-        
-        
+    } catch (error) {
+        console.error("Помилка при створенні:", error);
     }
 };

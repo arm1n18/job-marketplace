@@ -1,5 +1,7 @@
 package response
 
+import resume "backend/api/Resume"
+
 type Response struct{}
 
 type ApplyData struct {
@@ -8,6 +10,7 @@ type ApplyData struct {
 	RecruiterID   int    `json:"recruiterID"`
 	CandidateID   int    `json:"candidateID"`
 	JobID         int    `json:"jobID"`
+	ResponseID    int    `json:"responseID"`
 }
 
 type СandidateResumeRespond struct {
@@ -26,4 +29,10 @@ type RecruiterResumeRespond struct {
 	ResumeID    *int    `json:"resumeID"`
 	JobTitle    *string `json:"jobTitle"`
 	JobID       *int    `json:"jobID"`
+}
+
+type CandidateAllResponses struct {
+	resume.Resume
+	OfferID       *int `json:"offerID"`
+	ApplicationID *int `json:"applicationID"`
 }

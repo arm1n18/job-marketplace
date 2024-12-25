@@ -10,12 +10,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-func GetCandidateProfile(c *gin.Context, db *sql.DB) {
+func GetCandidateProfile(c *fiber.Ctx, db *sql.DB) error {
 	var candidateProfile resume.Resume
-	userID, _ := c.Get("userID")
+	userID := c.Locals("userID")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -24,6 +24,7 @@ func GetCandidateProfile(c *gin.Context, db *sql.DB) {
 	SELECT r.ID, r.creator_id, r.Title, r.work_experience AS WorkExperience, r.Achievements,
 	       c.Name AS CategoryName,
 	       s.Name AS SubcategoryName,
+		   r.key_words,
 	       ct.Name AS CityName,
 	       r.Experience, e.Name AS EmploymentName,
 	       r.salary
@@ -38,31 +39,28 @@ func GetCandidateProfile(c *gin.Context, db *sql.DB) {
 	rows, err := db.QueryContext(ctx, query, userID)
 	if err != nil {
 		log.Println("Помилка виконання запиту:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка виконання запиту к базе данных"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Помилка виконання запиту до бази даних"})
 	}
 	defer rows.Close()
 
 	if rows.Next() {
 		err := rows.Scan(&candidateProfile.ID, &candidateProfile.CreatorID, &candidateProfile.Title, &candidateProfile.WorkExperience, &candidateProfile.Achievements,
-			&candidateProfile.CategoryName, &candidateProfile.SubcategoryName, &candidateProfile.CityName, &candidateProfile.Experience,
+			&candidateProfile.CategoryName, &candidateProfile.SubcategoryName, &candidateProfile.Keywords, &candidateProfile.CityName, &candidateProfile.Experience,
 			&candidateProfile.EmploymentName, &candidateProfile.Salary)
 		if err != nil {
 			log.Println("Помилка під час сканування рядка:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка під час отриання данних резюме"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Помилка під час отриання данних резюме"})
 		}
 	} else {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Резюме не найдено"})
-		return
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Резюме не найдено"})
 	}
 
-	c.JSON(http.StatusOK, candidateProfile)
+	return c.Status(fiber.StatusOK).JSON(candidateProfile)
 }
 
-func GetCompanyProfile(c *gin.Context, db *sql.DB) {
+func GetCompanyProfile(c *fiber.Ctx, db *sql.DB) error {
 	var companyProfile CompanyProfile
-	userID, _ := c.Get("userID")
+	userID := c.Locals("userID")
 
 	query := `SELECT "company_name", "about_us", "web_site", "linkedin", "facebook",
 		"recruiter_name", "phone_number" FROM "Company" WHERE "recruiter_id" = $1`
@@ -70,9 +68,9 @@ func GetCompanyProfile(c *gin.Context, db *sql.DB) {
 	rows, err := db.Query(query, userID)
 	if err != nil {
 		log.Println("Помилка виконання запиту:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка виконання запиту к базе данных"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Помилка виконання запиту до бази даних"})
 	}
+
 	defer rows.Close()
 
 	if rows.Next() {
@@ -80,42 +78,41 @@ func GetCompanyProfile(c *gin.Context, db *sql.DB) {
 			&companyProfile.Facebook, &companyProfile.RecruiterName, &companyProfile.PhoneNumber)
 		if err != nil {
 			log.Println("Помилка під час сканування рядка:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка під час отриання данних компанії"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Помилка під час отриання данних компанії"})
 		}
 	} else {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Компанія не знайдена"})
-		return
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Компанія не знайдена"})
 	}
 
-	c.JSON(http.StatusOK, companyProfile)
+	return c.Status(fiber.StatusOK).JSON(companyProfile)
 }
 
-func (p *Profile) GetUserProfile(c *gin.Context, db *sql.DB) {
-	userRole, _ := c.Get("userRole")
+func (p *Profile) GetUserProfile(c *fiber.Ctx, db *sql.DB) error {
+	userRole := c.Locals("userRole")
 
 	if userRole == "CANDIDATE" {
 		GetCandidateProfile(c, db)
 	} else if userRole == "RECRUITER" {
 		GetCompanyProfile(c, db)
 	}
+
+	return nil
 }
 
-func (p *Profile) GetAvatar(c *gin.Context) {
-	userID, _ := c.Get("userID")
+func (p *Profile) GetAvatar(c *fiber.Ctx) error {
+	userID := c.Locals("userID")
 	cfg := config.LoadDataBaseConfig()
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=require", cfg.Host, cfg.User, cfg.Password, cfg.DBName)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Println("Помилка підключення до бази даних:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Помилка запиту до бази даних"})
 	}
 	defer db.Close()
 
 	var imageURL string
 	_ = db.QueryRow(`SELECT "image_url" FROM "Company" WHERE "recruiter_id" = $1`, userID).Scan(&imageURL)
 
-	c.JSON(http.StatusOK, gin.H{"image_url": imageURL})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"image_url": imageURL})
 }

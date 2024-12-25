@@ -4,6 +4,7 @@ import { NoImgAvatars } from "@/components/ui/noImgAvatars";
 import Link from "next/link";
 import { Job } from "@/types/job.type";
 import { useRouter } from "next/navigation";
+import Image from 'next/image';
 
 interface Props extends Job{
     data: Job;
@@ -14,7 +15,7 @@ interface Props extends Job{
 
 export const JobCard: React.FC<Props> = ({ data, onClick, keyInfo, className }) => {
     const router = useRouter();
-    const companyRedirect = (e: any) => {
+    const companyRedirect = (e: React.MouseEvent<HTMLButtonElement>) => { // was e: any
         e.stopPropagation();
         router.push(`/company/${data.company_name!.replace(' ', '-')}`)
     }
@@ -22,9 +23,10 @@ export const JobCard: React.FC<Props> = ({ data, onClick, keyInfo, className }) 
     return (
         <div className={cn("rounded-lg p-4", className)} onClick={onClick} style={{ cursor: 'pointer' }}>
             <div className="w-full justify-between flex">
-                <div className="flex items-center gap-3" onClick={companyRedirect}>
+                {/* was   <div className="flex items-center gap-3" onClick={companyRedirect}>*/}
+                <div className="flex items-center gap-3" onClick={() => companyRedirect}>
                    { data.image_url ? (
-                        <img className="rounded-full w-6 h-6" src={data.image_url} alt={`${data.company_name} avatar`} />
+                        <Image className="rounded-full w-6 h-6" height={64} width={64} src={data.image_url} alt={`${data.company_name} avatar`} />
                     ) : (<NoImgAvatars className="rounded-full w-6 h-6 text-xs" name={data.company_name!} />)}
                     <Link className="text-common-sm leading-none hover:underline" href={`/company/${data.company_name!.replace(' ', '-')}`}>{data.company_name}</Link>
                 </div>
@@ -33,7 +35,7 @@ export const JobCard: React.FC<Props> = ({ data, onClick, keyInfo, className }) 
             </div>
 
             <h2 className="text-title my-3 leading-none">
-                <Link href={`/jobs/${data.id}`} className="visited:text-[#4B1484]">{data.title}</Link>
+                <Link href={`/jobs/${data.id}`} className="visited:text-[#4B1484] hover:underline">{data.title}</Link>
             </h2>
 
             

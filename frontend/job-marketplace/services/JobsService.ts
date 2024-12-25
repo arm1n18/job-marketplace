@@ -53,4 +53,8 @@ export default class JobsService {
             return JWTService.handleError(error, () => this.deleteJob(id));
         }
     }
+
+    public static formattedExperience(experience: number) {
+        return experience ? `${experience.toString()} ${experience > 4 ? "років" : (experience > 1 ? "роки" : "рік")} досвіду` : "Без досвіду"
+    }
 }

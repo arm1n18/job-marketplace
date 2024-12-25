@@ -1,11 +1,11 @@
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Clock, Search, Trash, X } from "lucide-react";
+import { Clock, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useOpenedRef } from "../hook/useOpenedRef";
 
 interface Props {
-    onSearch: (query: any) => void;
+    onSearch: (query: string) => void;
     value?: string;
     className?: string;
 }
@@ -57,10 +57,10 @@ export const SearchInput: React.FC<Props> = ({ className, onSearch, value }) => 
         localStorage.setItem('searchQueries', JSON.stringify(storedQueries));
     }
     
-    function removeFromHistory(dataToRemove: string) {
-        storedQueries.splice(storedQueries.indexOf(dataToRemove), 1);
-        localStorage.setItem('searchQueries', JSON.stringify(storedQueries));
-    }
+    // function removeFromHistory(dataToRemove: string) {
+    //     storedQueries.splice(storedQueries.indexOf(dataToRemove), 1);
+    //     localStorage.setItem('searchQueries', JSON.stringify(storedQueries));
+    // }
     
     return (
         <div className={cn(`relative flex gap-6`, className)} ref={openedRef}>
@@ -92,7 +92,7 @@ export const SearchInput: React.FC<Props> = ({ className, onSearch, value }) => 
                                 <li
                                     key={index}
                                     className="filter-item input cursor-pointer flex gap-4 items-center"
-                                    onClick={() => {setSearchQuery(query), handleSearch(query), setSearchMenu(false)}}
+                                    onClick={() => {setSearchQuery(query); handleSearch(query); setSearchMenu(false);}}
                                 >
                                  <Clock className="size-4 mt-[1px]"/>{query}
                                 </li>

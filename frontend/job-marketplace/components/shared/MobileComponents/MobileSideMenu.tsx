@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { NoImgAvatars } from "@/components/ui/noImgAvatars";
 import { LogOut, Menu, PencilLine, Search, Send, UserSearch, X } from "lucide-react"
 import Link from "next/link";
+import Image from 'next/image';
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
     className?: string
 }
 
-export const MobileSideMenu: React.FC<Props> = ({ className }) => {
+export const MobileSideMenu: React.FC<Props> = ({}) => {
     const [opened, setOpened] = useState(false);
     const overlayRef = useRef<HTMLDivElement | null>(null);
     const openedRef = useRef<HTMLDivElement>(null);
@@ -55,7 +56,7 @@ export const MobileSideMenu: React.FC<Props> = ({ className }) => {
                 <div className="" ref={openedRef}>
                     
                     <div className="flex justify-between px-4 py-4">
-                        <img src="/images/logo/joobly-logo-blue.svg" alt="joobly-logo" className="h-8 mb-4" draggable="false"/>
+                        <Image src="/images/logo/joobly-logo-blue.svg" alt="joobly-logo" width={100} height={32}  draggable="false"/>
                         <X size={24} className="text-common" onClick={() => setOpened(!opened)}/>
                     </div>
 
@@ -63,7 +64,7 @@ export const MobileSideMenu: React.FC<Props> = ({ className }) => {
                         <Link href="/profile" className="flex gap-2">
                             {
                                 avatarUrl ? 
-                                (<img src={avatarUrl} alt="avatar" className="rounded-full w-14 h-14" />) 
+                                (<Image src={avatarUrl} alt="avatar" className="rounded-full w-14 h-14" />) 
                                 : (<NoImgAvatars className="rounded-full w-14 h-14 text-2xl" name={String(email)}/>)
                             }
                             <div className="flex flex-col justify-between overflow-hidden">

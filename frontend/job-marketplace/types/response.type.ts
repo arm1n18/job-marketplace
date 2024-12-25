@@ -7,4 +7,5 @@ export interface ResponseDataType {
     recruiterID: number;
     candidateID: number;
     jobID?: number
+    responseID?: number;
 }

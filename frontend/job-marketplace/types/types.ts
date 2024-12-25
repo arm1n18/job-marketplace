@@ -1,5 +1,4 @@
 export interface KeywordsType {
-    id: number;
     name: string;
 }
 

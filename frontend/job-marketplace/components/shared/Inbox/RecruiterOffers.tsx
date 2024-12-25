@@ -20,6 +20,9 @@ export const RecruiterOffers: React.FC<OffersProps> = ({ setSelectedResume, sele
     const screenWidth = useWindowWidth();
     const router = useRouter();
 
+    const offerOrApplication = selectedResume && (selectedResume.offerID != 0 ? "application" : "offer");
+    const responseID = selectedResume && (selectedResume.offerID != 0 ? selectedResume.offerID : selectedResume.applicationID);
+
     const handleResponseClick = (jobID: number, status: string) => {
         const responseParams = { ID: jobID, status, setData, setSelectedData: setSelectedResume, selectedData: selectedResume };
         handleResponse(responseParams);
@@ -39,19 +42,13 @@ export const RecruiterOffers: React.FC<OffersProps> = ({ setSelectedResume, sele
                         key={index}
                         className={`${index != offers.length - 1 ? 'mb-3' : ''} ${selectedResume === offer && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                         data={offer}
-                        onClick={() => {screenWidth > 768 ? setSelectedResume(offer) : router.push(`/candidates/${offer.id}`)}}
-                        keywords={[{ id: 1, name: 'statistics' },
-                            { id: 2, name: 'Data Science' },
-                            { id: 3, name: 'Keras' },
-                            { id: 4, name: 'PyTorchr' },
-                            { id: 5, name: 'Python' },
-                            { id: 7, name: 'Goscikit-learnlang' },
-                            { id: 8, name: 'Pandas' },
-                            { id: 9, name: 'math' },
-                            { id: 10, name: 'matplotlib' },
-                            { id: 11, name: 'numpy' },
-                            { id: 12, name: 'NLP' },
-                            ]}
+                        onClick={() => {
+                            if (screenWidth > 768) {
+                                setSelectedResume(offer);
+                            } else {
+                                router.push(`/response/candidate/${selectedResume && selectedResume.id}?${offerOrApplication}=${responseID}`)
+                            }
+                        }}
                         />
                     )
                     ))
@@ -69,13 +66,6 @@ export const RecruiterOffers: React.FC<OffersProps> = ({ setSelectedResume, sele
                             resumeStatus={selectedResume.status.String}
                             route="offer"
                             responseID={selectedResume.offerID}
-                            keywords={[{ id: 1, name: 'Embedded' },
-                            { id: 2, name: 'Linux' },
-                            { id: 3, name: 'LinuxPostgreSQL' },
-                            { id: 4, name: 'Windows Server' },
-                            { id: 5, name: 'Python' },
-                            { id: 6, name: 'Golang' },
-                            ]}
                         />
                     )
             ))}

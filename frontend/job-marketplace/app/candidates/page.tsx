@@ -88,18 +88,6 @@ export default function Candidates() {
                                     className={`${index != resumes.length - 1 ? 'mb-3' : ''} ${selectedResume === resume && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                                     data={resume}
                                     onClick={() => setSelectedResume(resume)}
-                                    keywords={[{ id: 1, name: 'statistics' },
-                                        { id: 2, name: 'Data Science' },
-                                        { id: 3, name: 'Keras' },
-                                        { id: 4, name: 'PyTorchr' },
-                                        { id: 5, name: 'Python' },
-                                        { id: 7, name: 'Goscikit-learnlang' },
-                                        { id: 8, name: 'Pandas' },
-                                        { id: 9, name: 'math' },
-                                        { id: 10, name: 'matplotlib' },
-                                        { id: 11, name: 'numpy' },
-                                        { id: 12, name: 'NLP' },
-                                        ]}
                                     />
                                 </React.Fragment>
                             ))
@@ -115,13 +103,6 @@ export default function Candidates() {
                         data={selectedResume}
                         onApplyClick={handleResponse}
                         resumeStatus={selectedResume.status.String}
-                        keywords={[{ id: 1, name: 'Embedded' },
-                        { id: 2, name: 'Linux' },
-                        { id: 3, name: 'LinuxPostgreSQL' },
-                        { id: 4, name: 'Windows Server' },
-                        { id: 5, name: 'Python' },
-                        { id: 6, name: 'Golang' },
-                        ]}
                         />
                     ))}
                 </div>

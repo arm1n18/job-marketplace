@@ -1,22 +1,21 @@
 import { BreadCrumb, ResponseButtonsSection, Button, ParametersLine, SectionDescription, KeyWord, ApplyButtonRecruiter, AlertDialog  } from "@/components/ui";
-import { SetStateAction, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { JobCard } from "../Job";
 import { Share2, X } from "lucide-react";
 import { JobCardSkeleton } from "../Skeletons";
-import { Job, KeywordsType, Resume } from "@/types";
+import { Job, Resume } from "@/types";
 import { Method, ResponseDataType } from "@/types/response.type";
 import { useAuth, useOpenedRef, useWindowWidth } from "@/components/hook";
 import ApplyService from "@/services/ApplyService";
 import FetchDataService from "@/services/FetchDataService";
 import { cn, copyURL } from "@/lib";
-import CandidateService from "@/services/CandidateService";
-import { useRouter } from "next/navigation";
+import ResumeService from "@/services/ResumeService";
 import { EllipsisMenu } from "@/components/ui/EllipsisMenu";
+import { toast } from "react-toastify";
 
 interface Props{
     data: Resume;
-    keywords?: KeywordsType[];
     onApplyClick: (resumeID: number, status: string) => void;
     isMainPage?: boolean;
     resumeStatus: string;
@@ -31,7 +30,7 @@ const methods: { [key: string]: string } = {
     "REJECTED": "rejectResume",
 }
 
-export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, className, onApplyClick, resumeStatus, route, responseID}) => {
+export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, className, onApplyClick, resumeStatus, route, responseID}) => {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [openedAlert, setOpenedAlert] = useState<boolean>(false);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -41,7 +40,6 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
     const screenWidth = useWindowWidth();
     const [ loading, setLoading ] = useState(false);
     const openedRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
 
     useEffect(() => {
         if (jobsList) {
@@ -59,7 +57,8 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
             applyingForID: data.id!,
             recruiterID: id!,
             candidateID: data.creator_id!,
-            jobID: data!.jobID
+            jobID: selectedJob ? selectedJob.id : data!.id,
+            responseID: responseID
         }
 
         const applyJobs = new ApplyService({role: role, data: applyData, jobID: data.id});
@@ -67,9 +66,10 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
         setLoading(true);
         try {
             const response = await applyJobs.respond();
-            if (response.success) {
+            if (response?.success && status != "OFFER_PENDING") {
                 onApplyClick(data.id!, status);
             }
+            toast.success("Пропозиція успішно відправлена!");
         } catch (error) {
             console.log(error);
         } finally {
@@ -87,7 +87,7 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
                     setOpened={setOpenedAlert}
                     title="Ви впевнені?"
                     description="Ця дія призведе до видалення вакансії, всіх пов'язних з нею відгуків та запропонованих пропозицій."
-                    onConfirm={async () => {CandidateService.deleteResume(data.id!), setOpenedAlert(false)}}
+                    onConfirm={async () => {ResumeService.deleteResume(data.id!); setOpenedAlert(false);}}
                 />
             )}
             <div className={cn("flex-grow md:border md:border-[#D0D5DD] rounded-lg sticky max-md:p-4 p-8", className)}>
@@ -103,7 +103,7 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
                 <header className="w-full flex justify-between items-center">
                         <div className="w-full flex justify-between max-md:flex-col">
                                 <div className="flex items-center justify-between">
-                                <h2 className="text-title-bg leading-none max-md:mb-4">{data.title}</h2>
+                                <h2 className="text-title-bg leading-none max-md:mb-4 hover:underline"><Link href={`/candidates/${data.id}`}>{data.title}</Link></h2>
                                     {data.creator_id == id && screenWidth < 768 && (
                                         <EllipsisMenu isOpen={isOpen} openedAlert={openedAlert}
                                             setIsOpen={setIsOpen} setOpenedAlert={setOpenedAlert}
@@ -124,11 +124,11 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
                         </div>
                 </header>
 
-                {keywords?.length ? (
+                {data.keywords?.length ? (
                     <>
                         <div className="flex items-center gap-3 flex-wrap mt-6">
-                            {keywords.map((keyword) => (
-                                <KeyWord className="key-word-block-bg" key={keyword.id} keyword={keyword.name} />
+                            {data.keywords && data.keywords.map((keyword, index) => (
+                                <KeyWord className="key-word-block-bg" key={index} keyword={keyword} />
                             ))}
                         </div>
                     </>
@@ -206,7 +206,7 @@ export const ResumeMainCard: React.FC<Props> = ({ data, isMainPage, keywords, cl
                             </div>
                                 <Button className="max-w-md w-full mt-4"
                                     disabled={loading}
-                                    onClick={() =>{handleResponseClick("OFFER_PENDING"),
+                                    onClick={() =>{handleResponseClick("OFFER_PENDING");
                                     setJobsList(!jobsList)}}>
                                         Запропонувати вакансію
                                 </Button>

@@ -36,10 +36,12 @@ export default function CompanyPage({ params: { id } }: { params: { id: string }
     const params = useQueryParams(searchFilter, filters);
 
     useEffect(() => {
+        router.push(`?${params.toString()}`);
         const company = new CompanyService({ id: id, params: params, setLoading: setLoading, setCompany: setCompany,
             setCompanyJobs: setCompanyJobs, setSelectedJob: setSelectedJob});
         company.fetchCompanyInfo();
     }, [id, searchFilter, filters]);
+    //  was     }, [id, searchFilter, filters]);
 
     const handleSearch = async (query: string) => {
         if(query.trim() === "" || query.length < 2) return;
@@ -125,7 +127,13 @@ export default function CompanyPage({ params: { id } }: { params: { id: string }
                                 <JobCard
                                     className={`${index != companyJobs.length - 1 ? 'mb-3' : ''} ${selectedJob === companyJob && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                                     key={companyJob.id}
-                                    onClick={() => {screenWidth > 768 ? setSelectedJob(companyJob) : router.push(`/jobs/${companyJob.id}`)}}
+                                    onClick={() => {
+                                        if (screenWidth > 768) {
+                                          setSelectedJob(companyJob);
+                                        } else {
+                                          router.push(`/jobs/${companyJob.id}`);
+                                        }
+                                      }}
                                     data={companyJob}
                                     keyInfo={[
                                         companyJob.city || "Україна",
@@ -149,14 +157,6 @@ export default function CompanyPage({ params: { id } }: { params: { id: string }
                             data={selectedJob}
                             onApplyClick={handleResponse}
                             jobStatus={selectedJob.status.String}
-                            keywords={[
-                            { id: 1, name: 'Embedded' },
-                            { id: 2, name: 'Linux' },
-                            { id: 3, name: 'LinuxPostgreSQL' },
-                            { id: 4, name: 'Windows Server' },
-                            { id: 5, name: 'Python' },
-                            { id: 6, name: 'Golang' },
-                            ]}
                         />
                     )
                 )}

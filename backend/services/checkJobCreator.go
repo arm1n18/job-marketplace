@@ -2,20 +2,20 @@ package services
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-func CheckJobCreator(db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, _ := c.Get("userID")
-		idStr := c.Param("id")
+func CheckJobCreator(db *sql.DB) func(*fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		userID := c.Locals("userID")
+		idStr := c.Params("id")
 		id, _ := strconv.ParseInt(idStr, 10, 64)
 
-		fmt.Print(userID, id)
+		log.Print(userID, id)
 
 		query := `SELECT EXISTS(SELECT 1 FROM "Job" WHERE "id" = $1 AND "creator_id" = $2 AND "inactive" = FALSE)`
 		var isCreator bool
@@ -23,18 +23,20 @@ func CheckJobCreator(db *sql.DB) gin.HandlerFunc {
 		err := db.QueryRow(query, id, userID).Scan(&isCreator)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-			c.Abort()
-			return
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": "Помилка запиту до бази даних",
+			})
 		}
 
 		if !isCreator {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
-			c.Abort()
-			return
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": "Forbidden",
+			})
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "OK"})
-		c.Next()
+		c.JSON(fiber.Map{
+			"message": "OK",
+		})
+		return c.Next()
 	}
 }

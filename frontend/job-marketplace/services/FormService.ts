@@ -20,10 +20,7 @@ export default class FormService {
     private router: ReturnType<typeof useRouter>;
     private message: string;
 
-    private JWTService: JWTService
-
     constructor(FormData: FormData) {
-        this.JWTService = new JWTService();
         this.url = FormData.url;
         this.redirectURL = FormData.redirectURL;
         this.data = FormData.data;

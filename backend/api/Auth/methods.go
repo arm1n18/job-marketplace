@@ -10,13 +10,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (a *Auth) Login(c *gin.Context) {
+func (a *Auth) Login(c *fiber.Ctx) error {
 	var user UserLogin
 
 	cfg := config.LoadDataBaseConfig()
@@ -25,14 +25,16 @@ func (a *Auth) Login(c *gin.Context) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Println("Помилка підключення до бази даних:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Помилка запиту до бази даних",
+		})
 	}
 	defer db.Close()
 
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	// log.Print(user)
@@ -41,8 +43,9 @@ func (a *Auth) Login(c *gin.Context) {
 
 	userID, userRole, err := services.IsUserExists(db, user.Email, user.Password)
 	if err != nil || userID == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Некоректна пошта або пароль"})
-		return
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			"error": "Некоректна пошта або пароль",
+		})
 	}
 
 	query := `SELECT "refresh_token" FROM "Tokens" WHERE "user_id" = $1`
@@ -50,14 +53,16 @@ func (a *Auth) Login(c *gin.Context) {
 	var refreshToken string
 	log.Printf("Запрос к базе данных для userID: %d", userID)
 	err = db.QueryRow(query, userID).Scan(&refreshToken)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("Токен не найден для пользователя:", userID)
 		} else {
 			log.Println("Ошибка при выполнении запроса:", err)
 		}
-		return
+		return nil
 	}
+
 	log.Printf("Найденный refreshToken: %s", refreshToken)
 
 	if err := godotenv.Load(".env"); err != nil {
@@ -76,9 +81,10 @@ func (a *Auth) Login(c *gin.Context) {
 	if parsedToken == nil || !parsedToken.Valid || refreshToken == "" {
 		accessToken, newRefreshtoken, err := services.CreateToken(userID, user.Email, database.Role(userRole), true)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			log.Println(err)
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
 
 		query = `
@@ -87,34 +93,44 @@ func (a *Auth) Login(c *gin.Context) {
 		_, err = db.Exec(query, userID, newRefreshtoken)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
 
 		services.SetCookie(c, newRefreshtoken)
-		c.JSON(http.StatusOK, gin.H{"token": accessToken})
-		return
+		return c.Status(http.StatusOK).JSON(fiber.Map{
+			"token": accessToken,
+		})
 	}
 
 	accessToken, _, err := services.CreateToken(userID, user.Email, database.Role(userRole), false)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		log.Println(err)
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	services.SetCookie(c, refreshToken)
-	c.JSON(http.StatusOK, gin.H{"token": accessToken})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"token": accessToken,
+	})
 }
 
-func (a *Auth) LogOut(c *gin.Context) {
-	c.SetCookie("refresh_token", "", -1, "/", "192.168.0.106", false, true)
-	c.JSON(200, gin.H{
+func (a *Auth) LogOut(c *fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:    "refresh_token",
+		Value:   "",
+		Expires: time.Now().Add(-time.Hour),
+	})
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Выход выполнен",
 	})
 }
 
-func (a *Auth) Register(c *gin.Context) {
+func (a *Auth) Register(c *fiber.Ctx) error {
 	var user UserRegister
 
 	cfg := config.LoadDataBaseConfig()
@@ -123,24 +139,28 @@ func (a *Auth) Register(c *gin.Context) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Println("Помилка підключення до бази даних:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Помилка запиту до бази даних",
+		})
 	}
 	defer db.Close()
 
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	valid, err := services.CheckValidUser(db, user.Email, user.Role)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 	if !valid {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с таким email уже существует или некорректная роль"})
-		return
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Користувач із таким email вже існує або некоректна роль",
+		})
 	}
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -152,15 +172,17 @@ func (a *Auth) Register(c *gin.Context) {
 	err = db.QueryRow(query, user.Email, hash, user.Role).Scan(&userID)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	accessToken, refreshToken, err := services.CreateToken(userID, user.Email, user.Role, true)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		log.Println(err)
-		return
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	query = `
@@ -170,26 +192,31 @@ func (a *Auth) Register(c *gin.Context) {
 	_, err = db.Exec(query, userID, refreshToken)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	services.SetCookie(c, refreshToken)
 	log.Println(accessToken)
-	c.JSON(http.StatusOK, gin.H{"token": accessToken})
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"token": accessToken,
+	})
 }
 
-func (a *Auth) RefreshToken(c *gin.Context) {
+func (a *Auth) RefreshToken(c *fiber.Ctx) error {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Ошибка загрузки .env файла: %v", err)
 	}
 
 	secretKey := os.Getenv("SECRET_KEY")
 
-	refreshToken, err := c.Cookie("refresh_token")
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token not found"})
-		return
+	refreshToken := c.Cookies("refresh_token")
+	if refreshToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Refresh token not found",
+		})
 	}
 
 	log.Printf("Received refresh token: %s", refreshToken)
@@ -201,32 +228,37 @@ func (a *Auth) RefreshToken(c *gin.Context) {
 
 	if err != nil || !token.Valid {
 		log.Printf("Invalid refresh token: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
-		return
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid refresh token",
+		})
 	}
 
 	exp, ok := (*claims)["exp"].(float64)
 	if !ok || time.Now().Unix() > int64(exp) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token has expired"})
-		return
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Refresh token has expired",
+		})
 	}
 
 	userID, ok := (*claims)["id"].(float64)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
-		return
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid token claims",
+		})
 	}
 
 	userEmail, ok := (*claims)["email"].(string)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
-		return
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid token claims",
+		})
 	}
 
 	userRole, ok := (*claims)["role"].(string)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
-		return
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid token claims",
+		})
 	}
 
 	cfg := config.LoadDataBaseConfig()
@@ -235,9 +267,9 @@ func (a *Auth) RefreshToken(c *gin.Context) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Println("Помилка підключення до бази даних:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		c.Abort()
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Помилка запиту до бази даних",
+		})
 	}
 	defer db.Close()
 
@@ -247,14 +279,15 @@ func (a *Auth) RefreshToken(c *gin.Context) {
 	err = db.QueryRow(query, userID, userEmail, userRole).Scan(&exists)
 	if err != nil {
 		log.Printf("Database query error: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		c.Abort()
-		return
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized",
+		})
 	}
 
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized",
+		})
 	}
 
 	newAccessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -267,9 +300,12 @@ func (a *Auth) RefreshToken(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Error signing new access token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create new access token"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not create new access token",
+		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": newAccessToken})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"token": newAccessToken,
+	})
 }

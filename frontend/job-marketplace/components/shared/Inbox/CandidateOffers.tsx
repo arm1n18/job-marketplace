@@ -18,7 +18,7 @@ interface OffersProps {
     className?: string
 }
 
-export const CandidateOffers: React.FC<OffersProps> = ({ setSelectedJob, selectedJob, applications, loading, search, setData, data }) => {
+export const CandidateOffers: React.FC<OffersProps> = ({ setSelectedJob, selectedJob, applications, loading, search, setData }) => {
     const screenWidth = useWindowWidth();
     const router = useRouter();
     
@@ -55,7 +55,13 @@ export const CandidateOffers: React.FC<OffersProps> = ({ setSelectedJob, selecte
                             <JobCard
                             className={`${index != applications.length - 1 ? 'mb-3' : ''} ${selectedJob === application && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                             key={application.id}
-                            onClick={() => {screenWidth > 768 ? setSelectedJob(application) : router.push(`/jobs/${application.id}`)}}
+                            onClick={() => {
+                                if (screenWidth > 768) {
+                                    setSelectedJob(application);
+                                } else {
+                                    router.push(`/jobs/${application.id}`)};
+                                }
+                            }
                             data={application}
                             keyInfo={[
                                 application.city_name || "Україна",
@@ -82,14 +88,6 @@ export const CandidateOffers: React.FC<OffersProps> = ({ setSelectedJob, selecte
                                 jobStatus={selectedJob.status.String}
                                 responseID={selectedJob.offer_id}
                                 route="offer"
-                                keywords={[
-                                { id: 1, name: 'Embedded' },
-                                { id: 2, name: 'Linux' },
-                                { id: 3, name: 'LinuxPostgreSQL' },
-                                { id: 4, name: 'Windows Server' },
-                                { id: 5, name: 'Python' },
-                                { id: 6, name: 'Golang' },
-                                ]}
                             />
                         )
                     )

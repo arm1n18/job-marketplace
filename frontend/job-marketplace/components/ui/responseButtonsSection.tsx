@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { Check, ExternalLink, X } from "lucide-react";
 import { Button } from "./button";
 import { cn } from "@/lib/utils";
 import { LoadingSVG } from "./loadingSVG";
@@ -22,6 +22,7 @@ export const ResponseButtonsSection: React.FC<Props> = ({status, loading, onClic
     const [loadingButton, setLoadingButton] = useState({succeeded: false, rejected: false});
     const { role } = useAuth();
     const pathname = usePathname();
+    const currentPath = pathname.split("/")[1];
     
     const handleClick = (status: string) => {
         if (status === "SUCCEEDED") {
@@ -40,23 +41,23 @@ export const ResponseButtonsSection: React.FC<Props> = ({status, loading, onClic
         }, 100); 
     };
 
+   
+    const href = (currentPath == "candidates" && screenWidth > 768 ? "/inbox" : `/response/${route}/${id}`)
     return (
         <>
             {status == "SUCCEEDED" && (<Button className={cn("", className)} variant={"succeeded"} size="sm">
-                <Link href={`/response/${route}/${id}`}>Схвалено</Link>
+                <Link href={href} className="flex gap-2 items-center">Схвалено<ExternalLink size={16} /></Link>
             </Button>)}
             {status == "REJECTED" && (<Button disabled={true} className={cn("", className)} variant={"rejected"} size="sm">Відхилено</Button>)}
             {status !== "SUCCEEDED" && status !== "REJECTED" &&
                     (
-                        pathname !== "/inbox" && role === "RECRUITER" ? (
-                            <Button className="w-full"><Link href="inbox">Переглянути відгуки</Link></Button>
-                        ) : (
+                        
                             <div className={`${screenWidth < 768 ? "w-full" : ""} flex gap-2`}>
                             <Button key="SUCCEEDED"
                                 size="sm"
                                 className={cn("", className)}
                                 disabled={loading}
-                                onClick={() => {onClick("SUCCEEDED"), handleClick("SUCCEEDED")}}
+                                onClick={() => {onClick("SUCCEEDED"); handleClick("SUCCEEDED")}}
                             >
                             {loadingButton.succeeded ? <LoadingSVG /> : (screenWidth < 768 || role == "RECRUITER" ? "Прийняти" : <Check size={20}/>) }</Button>
                             <Button key="REJECTED"
@@ -64,11 +65,11 @@ export const ResponseButtonsSection: React.FC<Props> = ({status, loading, onClic
                             className={cn("", className)}
                             disabled={loading}
                             variant={"outline"} 
-                            onClick={() => {onClick("REJECTED"), setLoadingButton({...loadingButton, rejected: true})}}
+                            onClick={() => {onClick("REJECTED"); setLoadingButton({...loadingButton, rejected: true})}}
                             >
                             {loadingButton.rejected ? <LoadingSVG theme="dark" /> : (screenWidth < 768 || role == "RECRUITER" ? "Відхилити" : <X size={20}/>)}</Button>
                             </div>
-                        )
+                        
                     )
             }
         </>

@@ -3,15 +3,16 @@ package services
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-func CandidateMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if userRole, _ := c.Get("userRole"); userRole != "CANDIDATE" {
-			c.Status(http.StatusForbidden)
-			c.Abort()
+func CandidateMiddleware() func(*fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		if userRole := c.Locals("userRole"); userRole != "CANDIDATE" {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{
+				"error": "Wrong role",
+			})
 		}
-		c.Next()
+		return c.Next()
 	}
 }

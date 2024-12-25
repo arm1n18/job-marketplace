@@ -9,7 +9,7 @@ interface Props {
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setOpenedAlert: React.Dispatch<React.SetStateAction<boolean>>;
     openedRef: React.RefObject<HTMLDivElement>;
-    data: any;
+    data: number | string | undefined;
     url: string;
     className?: string;
 }

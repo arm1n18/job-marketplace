@@ -13,11 +13,11 @@ import (
 
 	"backend/handlers"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 )
 
-func (co *CompanyResponse) GetCompaniesList(c *gin.Context, db *sql.DB) {
+func (co *CompanyResponse) GetCompaniesList(c *fiber.Ctx, db *sql.DB) error {
 	var companies []CompaniesList
 	params := handlers.GetSearchParams(c)
 
@@ -46,8 +46,7 @@ func (co *CompanyResponse) GetCompaniesList(c *gin.Context, db *sql.DB) {
 	rows, err := db.Query(query, queryParams...)
 	if err != nil {
 		log.Printf("Помилка виконання запиту: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Помилка запиту до бази даних"})
 	}
 	defer rows.Close()
 
@@ -57,26 +56,26 @@ func (co *CompanyResponse) GetCompaniesList(c *gin.Context, db *sql.DB) {
 			&company.TotalJobs, &company.AverageSalary)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, company)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning companies"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Error scanning companies"})
 		}
 		companies = append(companies, company)
 	}
 
-	c.JSON(http.StatusOK, companies)
+	return c.Status(fiber.StatusOK).JSON(companies)
 }
 
-func (co *CompanyResponse) GetCompanyInfo(c *gin.Context, db *sql.DB) {
+func (co *CompanyResponse) GetCompanyInfo(c *fiber.Ctx, db *sql.DB) error {
 	var company Company
 	params := handlers.GetSearchParams(c)
-	name := c.Param("name")
-	userID, _ := c.Get("userID")
+	name := c.Params("name")
+	userID := c.Locals("userID")
 
 	var jobs []job.Job
 
 	if strings.Contains(name, " ") || strings.Contains(name, "%20") {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Имя компании не должно содержать пробелы"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Имя компании не должно содержать пробелы",
+		})
 	}
 
 	companyName := strings.ReplaceAll(name, "-", " ")
@@ -94,12 +93,14 @@ func (co *CompanyResponse) GetCompanyInfo(c *gin.Context, db *sql.DB) {
 	err := row.Scan(&company.ID, &company.CompanyName, &company.AboutUs, &company.ImageUrl, &company.WebSite, &company.LinkedIn, &company.Facebook)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Company not found"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Company not found",
+			})
 		}
 		log.Printf("Помилка виконання запиту: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Помилка запиту до бази даних",
+		})
 	}
 
 	jobsQuery := (`
@@ -107,6 +108,7 @@ func (co *CompanyResponse) GetCompanyInfo(c *gin.Context, db *sql.DB) {
 		j.ID, j.creator_id, j.Title, j.Description, j.Requirements, j.Offer,
 		c.Name AS CategoryName,
 		s.Name AS SubcategoryName,
+		j.key_words,
 		ct.Name AS CityName,
 		j.Experience, e.Name AS EmploymentName,
 		j.salary_from, j.salary_to, j.created_at, j.updated_at,
@@ -186,34 +188,36 @@ func (co *CompanyResponse) GetCompanyInfo(c *gin.Context, db *sql.DB) {
 
 	if err != nil {
 		log.Printf("Помилка виконання запиту: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Помилка запиту до бази даних",
+		})
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		job := job.Job{}
 		err := rows.Scan(&job.ID, &job.CreatorID, &job.Title, &job.Description, &job.Requirements, &job.Offer,
-			&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience, &job.EmploymentName,
+			&job.CategoryName, &job.SubcategoryName, &job.Keywords, &job.CityName, &job.Experience, &job.EmploymentName,
 			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName,
 			&job.AboutUs, &job.ImageUrl, &job.WebSite, &job.Status)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, job)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error scanning jobs",
+			})
 		}
 		jobs = append(jobs, job)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"company": company,
 		"jobs":    jobs,
 	})
 }
 
-func (co *CompanyResponse) GetCompanyJobsList(c *gin.Context, db *sql.DB) {
+func (co *CompanyResponse) GetCompanyJobsList(c *fiber.Ctx, db *sql.DB) error {
 	var jobs []job.Job
-	userID, _ := c.Get("userID")
+	userID := c.Locals("userID")
 
 	jobsQuery := (`
 	SELECT
@@ -232,43 +236,46 @@ func (co *CompanyResponse) GetCompanyJobsList(c *gin.Context, db *sql.DB) {
 	LEFT JOIN "Employment" e ON j.employment_id = e.ID
 	LEFT JOIN "User" u ON j.creator_id = u.ID
 	LEFT JOIN "Company" co ON u.ID = co.recruiter_id
-	WHERE j.creator_id = $1
+	WHERE j.creator_id = $1 AND inactive = FALSE
 	`)
 
 	rows, err := db.Query(jobsQuery, userID)
 
 	if err != nil {
 		log.Printf("Помилка виконання запиту: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Помилка запиту до бази даних"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Помилка запиту до бази даних",
+		})
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		job := job.Job{}
 		err := rows.Scan(&job.ID, &job.CreatorID, &job.Title, &job.Description,
-			&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience, &job.EmploymentName,
-			&job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt, &job.CompanyID, &job.CompanyName, &job.ImageUrl)
+			&job.CategoryName, &job.SubcategoryName, &job.CityName, &job.Experience,
+			&job.EmploymentName, &job.SalaryFrom, &job.SalaryTo, &job.CreatedAt, &job.UpdatedAt,
+			&job.CompanyID, &job.CompanyName, &job.ImageUrl)
 		if err != nil {
 			log.Printf("Error scanning row: %v, Data: %+v\n", err, job)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning jobs"})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error scanning jobs",
+			})
 		}
 		jobs = append(jobs, job)
 	}
 
-	c.JSON(http.StatusOK, jobs)
+	return c.Status(fiber.StatusOK).JSON(jobs)
 }
 
-func (co *CompanyResponse) CreateCompany(c *gin.Context, db *sql.DB) {
-	recruiterID := c.DefaultPostForm("recruiter_id", "")
-	recruiterName := c.DefaultPostForm("recruiter_name", "")
-	companyName := c.DefaultPostForm("company_name", "")
-	aboutUs := c.DefaultPostForm("about_us", "")
-	website := c.DefaultPostForm("web_site", "")
-	linkedin := c.DefaultPostForm("linkedin", "")
-	facebook := c.DefaultPostForm("facebook", "")
-	phone := c.DefaultPostForm("phone", "")
+func (co *CompanyResponse) CreateCompany(c *fiber.Ctx, db *sql.DB) error {
+	recruiterID := c.FormValue("recruiter_id", "")
+	recruiterName := c.FormValue("recruiter_name", "")
+	companyName := c.FormValue("company_name", "")
+	aboutUs := c.FormValue("about_us", "")
+	website := c.FormValue("web_site", "")
+	linkedin := c.FormValue("linkedin", "")
+	facebook := c.FormValue("facebook", "")
+	phone := c.FormValue("phone", "")
 
 	log.Printf("Received data: recruiterID=%s, recruiterName=%s, companyName=%s", recruiterID, recruiterName, companyName)
 
@@ -276,8 +283,9 @@ func (co *CompanyResponse) CreateCompany(c *gin.Context, db *sql.DB) {
 	var avatarURL string
 	if err != nil && err.Error() != "http: no such file" {
 		log.Printf("Error processing avatar file: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process avatar file"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to process avatar file",
+		})
 	}
 
 	if avatarFile != nil {
@@ -285,16 +293,18 @@ func (co *CompanyResponse) CreateCompany(c *gin.Context, db *sql.DB) {
 		avatarURL, err = media.UploadPhoto(avatarFile, companyName)
 		if err != nil {
 			log.Printf("Failed to upload photo to S3: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to upload photo to S3: %v", err)})
-			return
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("Failed to upload photo to S3: %v", err),
+			})
 		}
 	}
 
 	phoneNumber, err := strconv.Atoi(phone)
 	if err != nil {
 		log.Printf("Invalid phone number format: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid phone number format"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Invalid phone number format",
+		})
 	}
 
 	query := `INSERT INTO "Company" ("recruiter_id", "company_name", "about_us", "image_url", 
@@ -306,13 +316,14 @@ func (co *CompanyResponse) CreateCompany(c *gin.Context, db *sql.DB) {
 	err = db.QueryRow(query, recruiterID, companyName, aboutUs, avatarURL, website, linkedin, facebook, phoneNumber, recruiterName).Scan(&companyID)
 	if err != nil {
 		log.Printf("Error inserting company into database: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error inserting company into database: %v", err)})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Error inserting company into database: %v", err),
+		})
 	}
 
 	log.Printf("Company created successfully with ID: %d", companyID)
 
-	c.JSON(http.StatusOK, gin.H{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":    "Company created successfully",
 		"avatar_url": avatarURL,
 	})

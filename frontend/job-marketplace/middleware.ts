@@ -19,6 +19,9 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/profile', request.url));
     }
 
+    if(request.nextUrl.pathname === '/inbox' && !token) return NextResponse.redirect(new URL('/', request.url))
+    if(request.nextUrl.pathname.startsWith('/response') && !token) return NextResponse.redirect(new URL('/', request.url))
+
     if(request.nextUrl.pathname === '/candidates/create' || request.nextUrl.pathname.startsWith('/candidates/edit/')){
         if(!token) return NextResponse.redirect(new URL('/candidates', request.url));
     
@@ -47,5 +50,11 @@ export function middleware(request: NextRequest) {
         if (role !== "RECRUITER") return NextResponse.redirect(new URL('/candidates', request.url));
     
         return NextResponse.next();
+    }
+
+    if(request.nextUrl.searchParams.get('page') === '1'){
+       request.nextUrl.searchParams.delete('page')
+
+       return NextResponse.redirect(request.nextUrl);
     }
 }

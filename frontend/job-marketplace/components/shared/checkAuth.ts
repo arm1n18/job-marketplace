@@ -10,7 +10,7 @@ export const checkAuth = async () => {
         });
         return response.status === 200;
     } catch (error) {
-        // console.error("Ошибка проверки аутентификации:", error);
+        console.error("Помилка перевірки автентификації:", error);
         return false;
     }
 };

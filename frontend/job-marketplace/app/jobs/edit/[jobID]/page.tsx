@@ -4,13 +4,12 @@ import { categories, cities, employment } from "@/components/consts/filters-cons
 import { Container } from "@/components/Container";
 import { useAuth, useFormUpdate } from "@/components/hook";
 import { validationCreateJob } from "@/components/shared/validation-form";
-import { FilterDropDown, CheckBoxesSection, Button, Input, Slider, Textarea, LoadingSVG, AlertDialog } from "@/components/ui";
+import { FilterDropDown, CheckBoxesSection, Button, Input, Slider, Textarea, LoadingSVG, KeywordsInput } from "@/components/ui";
 import JobsService from "@/services/JobsService";
 import { JobCreate } from "@/types";
 import { CircleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SetStateAction, useEffect, useState } from "react";
-import { toast } from "react-toastify";
 
 
 
@@ -18,43 +17,38 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
     const { email, id} = useAuth();
     const router = useRouter();
 
-    const [minValue, setMinValue] = useState([0]);
-    const [formData, setformData] = useState<JobCreate>({ title: '', category_name: '', subcategory_name: '',
+    const [formData, setformData] = useState<JobCreate>({ title: '', category_name: '', subcategory_name: '', keywords: [],
     salary_from: 0, salary_to: 0, city: '', employment_name: '', experience: 0, description: '', requirements: '', offer: '', email: email!, id: id!});
     const [initialData, setInitialData] = useState<JobCreate>({});
     const [loading, setLoading] = useState(true);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
-        const getJobByID = new JobsService({url: `jobs/${jobID}`, setLoading, setData: (data: SetStateAction<JobCreate>) => {setformData(data), setInitialData(data)}});
+        const getJobByID = new JobsService({url: `jobs/${jobID}`, setLoading, setData: (data: SetStateAction<JobCreate>) => {setformData(data); setInitialData(data)}});
         getJobByID.fetchJobByID();
-    }, [id]);
+    }, [jobID]);
+    //  was [id]
 
     const handleChange = (fields: Partial<JobCreate>) => {
         console.log(formData);
         setformData({...formData, ...fields});
     };
 
-    const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
+    const HandleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        console.log(formData);
-
-        if(initialData != formData) {
-            await useFormUpdate({
-                e, 
-                url: `jobs/${jobID}`,
-                dataToSend: formData as { [key: string]: string | number | File; },
-                setLoading: () => {},
-                validationZod: validationCreateJob,
-                setErrors,
-                router,
-                message: "Вакансія успішно оновлена!",
-                redirectURL: `jobs/${jobID}`,
-            });
-        } else {
-            toast.warn("Нічого не змінено!");
-        }
+        await useFormUpdate({
+            e, 
+            url: `jobs/${jobID}`,
+            dataToSend: formData as { [key: string]: string | number | File; },
+            setLoading: setLoading,
+            validationZod: validationCreateJob,
+            setErrors,
+            router,
+            message: "Вакансія успішно оновлена!",
+            redirectURL: `jobs/${jobID}`,
+            isDataChanged: initialData !== formData
+        });
     }
 
     return (
@@ -62,7 +56,8 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
             <Container className="mt-12">
                 <h1 className="text-title-dark my-12">Редагування вакансії</h1>
                 <div className="line-gray mb-12" />
-                <form className="lg:w-fit" onSubmit={handleSubmit}>
+                <form className="lg:w-fit" onSubmit={HandleSubmit}>
+                    {/* {Посада} */}
                     <div className="flex flex-col lg:grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Посада</legend>
                         <div className="lg:w-[464px]">
@@ -75,6 +70,7 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                             {errors.title && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.title}</p>}
                         </div>
                     </div>
+                    {/* {Категорія} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Категорія</legend>
                         <div className="lg:w-[464px]">
@@ -89,12 +85,20 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                             {errors.category_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.category_name}</p>}
                         </div>
                     </div>
+                    {/* {Ключові слова - не працює} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Ключові слова</legend>
                         <div className="lg:w-[464px]">
-                            <Input className="w-full bg-[#F9FAFB]" placeholder="Наприклад: JavaScript / Front-End розробник" disabled={loading} />
+                             <KeywordsInput
+                                setKeywords={(keywords) => handleChange({keywords})}
+                                keywords={formData.keywords}
+                                disabled={loading}
+                                defaultValue={formData.keywords}
+                            />
+                            {errors.keywords && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.keywords}</p>}
                         </div>
                     </div>
+                    {/* {Досвід роботи} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Досвід роботи</legend>
                         <div className="lg:w-[464px]">
@@ -107,11 +111,12 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                                 max={10}
                                 step={0.5}
                                 className="w-full"
-                                onValueChange={(minValue) => {setMinValue(minValue), handleChange({experience: minValue[0]})}}
+                                onValueChange={(minValue) => {handleChange({experience: minValue[0]})}}
                             />
                         </div>
                         </div>
                     </div>
+                    {/* {Заробітна плата} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Заробітна плата</legend>
                         <div className="lg:w-[464px]">
@@ -141,6 +146,7 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                         {errors.salary_to && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.salary_to}</p>}
                         </div>
                     </div>
+                    {/* {Місто} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <legend className="text-common-dark max-lg:mb-2">Місто</legend>
                         <div className="lg:w-[464px]">
@@ -153,6 +159,7 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                             />
                         </div>
                     </div>
+                    {/* {Формат} */}
                     <div className="grid mb-12 lg:mb-24 lg:grid-cols-2">
                         <legend className="text-common-dark max-w-32 max-lg:mb-2">Формат</legend>
                         <div className="lg:w-[464px]">
@@ -163,11 +170,11 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                             {errors.employment_name && <p className="text-red-500 mb-6 flex gap-1"><CircleAlert className="mt-1" size={16}/>{errors.employment_name}</p>}
                         </div>
                     </div>
-
+                    {/* {Опис} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex flex-col lg:max-w-56">
                             <legend className="text-common-dark max-lg:mb-2">Опис</legend>
-                            <p className="text-common-light mb-2">Опишіть вакансію, вказавши її основну суть та майбутні обов'язки кандидата.</p>
+                            <p className="text-common-light mb-2">Опишіть вакансію, вказавши її основну суть та майбутні обов&apos;язки кандидата.</p>
                         </div>
                         <div className="lg:w-[464px]">
                             <Textarea className={`${errors.description && "border-red-500"} bg-[#F9FAFB]`} placeholder="Опис"
@@ -179,6 +186,7 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                             <div className="filters-text">{(formData.description ?? "").length}/2000</div>
                         </div>
                     </div>
+                    {/* {Вимоги} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex flex-col lg:max-w-56">
                             <legend className="text-common-dark max-lg:mb-2">Вимоги</legend>
@@ -194,6 +202,7 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                             <div className="filters-text">{(formData.requirements ?? "").length}/2000</div>
                         </div>
                     </div>
+                    {/* {Пропонуємо} */}
                     <div className="grid mb-12 lg:grid-cols-2">
                         <div className="flex flex-col lg:max-w-56">
                             <legend className="text-common-dark max-lg:mb-2">Пропонуємо</legend>
@@ -209,11 +218,12 @@ export default function EditJob({ params: { jobID } }: { params: { jobID: number
                             <div className="filters-text">{(formData.offer ?? "").length}/1000</div>
                         </div>
                     </div>
+                    {/* {Кнопки} */}
                     <div className="flex lg:justify-end gap-4">
                         <Button variant="outline" onClick={() => router.back()}>
                                 Скасувати
                         </Button>
-                        <Button className="max-md:w-48" onClick={() => handleSubmit} disabled={loading}>
+                        <Button className="max-md:w-48" onClick={() => HandleSubmit} disabled={loading}>
                             {loading ? <div className="flex gap-2"><LoadingSVG /> Застосування змін</div> : "Застосувати зміни"}
                         </Button>
                     </div>

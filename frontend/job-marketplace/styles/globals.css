@@ -482,9 +482,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 112px;
-  padding: 2px 12px 2px 6px;
-  border-radius: 16px;
+  width: fit-content;
+  padding: 2px 12px 2px 12px;
   font-size: 14px;
   font-weight: 600;
 }
@@ -496,13 +495,13 @@
   border: 1px solid rgba(28, 100, 238, 0.3);
 }
 
-.succeeded-badge {
+.green-badge {
   background: #ECFDF3;
   color: var(--salary);
   border: 1px solid rgba(3, 120, 71, 0.3);
 }
 
-.canceled-badge {
+.red-badge {
   background: #FDECEC;
   color: var(--cancel-red);
   border: 1px solid rgba(168, 79, 77, 0.3);
@@ -562,4 +561,8 @@
   box-shadow: 0px 19px 20px -20px rgba(110,110,110,0.45);
 }
 
-
+.keywords-input {
+  background: none;
+  stroke: none;
+  outline: none;
+}

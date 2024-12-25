@@ -5,8 +5,10 @@ import { useQueryParams } from "@/components/hook";
 import { SearchInput } from "@/components/shared";
 import { NothingFound } from "@/components/shared/nothingFound";
 import { NoImgAvatars, SectionDescription } from "@/components/ui";
-import FetchDataService from "@/services/FetchDataService";
+import { Skeleton } from "@/components/ui/skeleton";
+import CompanyService from "@/services/CompanyService";
 import { CompaniesList } from "@/types";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,15 +22,16 @@ export default function Companies() {
     const params = useQueryParams(searchFilter);
     
     useEffect(() => {
-        const getCompanies = new FetchDataService({url: "company/", params, setLoading, setData: setCompanies});
-        getCompanies.getData();
-    }, [searchFilter]);
+        const getCompanies = new CompanyService({params, setLoading, setCompany: setCompanies});
+        getCompanies.fetchCompaniesList();
+    }, [params]);
+    // was [searchFilter]
 
     const handleSearch = async (query: string) => {
       if(query.trim() === "") router.push(`/company`);
       if( query.length < 2) return;
       router.push(`/company?search=${query}`);
-  }
+    }
 
     const AVGsalary = (AVGsalary: number) => {
         if(AVGsalary == 0) {
@@ -48,13 +51,12 @@ export default function Companies() {
                     {!loading && !companies && 
                         <NothingFound type={"notFound"} />
                     }
-                    {
-                        !loading && companies && companies.map((company, index) => (
+                    {!loading ? (companies && companies.map((company, index) => (
                             <div key={index} className="rounded-lg p-8 w-full bg-non-selected">
                                 <div className="flex max-sm:flex-col gap-6">
                                     {
                                         company.image_url ? (
-                                            <img className="rounded-[8px] w-16 h-16" src={company.image_url} alt="" />
+                                            <Image className="rounded-[8px] w-16 h-16" width={1280} height={1280} src={company.image_url} alt="" />
                                         ) : (<NoImgAvatars className="rounded-[8px] w-16 h-16 text-2xl shrink-0" name={company.company_name} />
                                         )
                                     }
@@ -70,7 +72,25 @@ export default function Companies() {
                                     </div>
                                 </div>
                             </div>
-                        ))
+                        ))) : (
+                            Array.from({length: 5}).map((_, index) => (
+                                <div className="rounded-lg p-8 w-full bg-non-selected" key={index}>
+                                    <div className="flex max-sm:flex-col gap-6">
+                                        <Skeleton className="h-16 w-16 rounded-[8px]" />
+                                        <div className="flex flex-col w-full">
+                                            <div className="flex flex-col gap-2 w-full">
+                                                <Skeleton className="h-7 w-44" />
+                                                <div className="flex gap-4">
+                                                    <Skeleton className="h-4 w-20"/>
+                                                    <Skeleton className="h-4 w-20"/>
+                                                </div>
+                                            </div>
+                                            <Skeleton className="h-20 w-full my-4"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )
                     }
                 </div>
             </Container>

@@ -14,9 +14,12 @@ interface ApplicationsProps {
     className?: string
 }
 
-export const RecruiterApplications: React.FC<ApplicationsProps> = ({ setSelectedResume, selectedResume, applications, loading, search, className }) => {
+export const RecruiterApplications: React.FC<ApplicationsProps> = ({ setSelectedResume, selectedResume, applications, loading, search }) => {
     const screenWidth = useWindowWidth();
     const router = useRouter();
+
+    const offerOrApplication = selectedResume && (selectedResume.offerID != 0 ? "application" : "offer");
+    const responseID = selectedResume && (selectedResume.offerID != 0 ? selectedResume.offerID : selectedResume.applicationID);
     
     return (
         <div className="md:grid grid-cols-[37%,auto] w-full mt-12">
@@ -32,19 +35,13 @@ export const RecruiterApplications: React.FC<ApplicationsProps> = ({ setSelected
                         key={index}
                         className={`${index != applications.length - 1 ? 'mb-3' : ''} ${selectedResume === application && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                         data={application}
-                        onClick={() => {screenWidth > 768 ? setSelectedResume(application) : router.push(`/candidates/${application.id}`)}}
-                        keywords={[{ id: 1, name: 'statistics' },
-                            { id: 2, name: 'Data Science' },
-                            { id: 3, name: 'Keras' },
-                            { id: 4, name: 'PyTorchr' },
-                            { id: 5, name: 'Python' },
-                            { id: 7, name: 'Goscikit-learnlang' },
-                            { id: 8, name: 'Pandas' },
-                            { id: 9, name: 'math' },
-                            { id: 10, name: 'matplotlib' },
-                            { id: 11, name: 'numpy' },
-                            { id: 12, name: 'NLP' },
-                            ]}
+                        onClick={() => {
+                            if (screenWidth > 768) {
+                                setSelectedResume(application);
+                            } else {
+                                router.push(`/response/candidate/${selectedResume && selectedResume.id}?${offerOrApplication}=${responseID}`)
+                            }
+                        }}
                         />
                     )
                     ))
@@ -62,13 +59,6 @@ export const RecruiterApplications: React.FC<ApplicationsProps> = ({ setSelected
                         resumeStatus={selectedResume.status.String}
                         route="application"
                         responseID={selectedResume.applicationID}
-                        keywords={[{ id: 1, name: 'Embedded' },
-                        { id: 2, name: 'Linux' },
-                        { id: 3, name: 'LinuxPostgreSQL' },
-                        { id: 4, name: 'Windows Server' },
-                        { id: 5, name: 'Python' },
-                        { id: 6, name: 'Golang' },
-                        ]}
                     />
                 )
             ))}

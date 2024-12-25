@@ -2,6 +2,7 @@ import { toast } from "react-toastify";
 import FetchDataService from "./FetchDataService";
 import axios from "axios";
 import JWTService from "./JWTService";
+import JobsService from "./JobsService";
 
 interface Job {
     url: string;
@@ -11,7 +12,7 @@ interface Job {
     setSelectedData?: (data: any) => void;
 }
 
-export default class CandidateService {
+export default class ResumeService {
     private url: string;
     setResumes: any;
     setSelectedData?: (data: any) => void;
@@ -52,5 +53,9 @@ export default class CandidateService {
         } catch (error) {
             return JWTService.handleError(error, () => this.deleteResume(id));
         }
+    }
+
+    public static formatExperience(experience: number): string {
+        return JobsService.formattedExperience(experience);
     }
 }

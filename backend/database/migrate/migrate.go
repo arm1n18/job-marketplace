@@ -22,7 +22,7 @@ func MigrateDatabase() {
 	}
 
 	err = db.AutoMigrate(
-		&database.Job{},
+		&database.Resume{},
 	)
 	if err != nil {
 		log.Fatalf("Ошибка миграции базы данных: %v", err)
@@ -41,10 +41,10 @@ func DeleteColumns() error {
 		log.Fatal("Помилка підключення до бази даних:", err)
 	}
 
-	columnsToDelete := []string{"updated_at"}
+	columnsToDelete := []string{"category_id"}
 
 	for _, column := range columnsToDelete {
-		if err := db.Migrator().DropColumn(&database.Company{}, column); err != nil {
+		if err := db.Migrator().DropColumn(&database.Keyword{}, column); err != nil {
 			log.Fatalf("не удалось удалить колонку %s: %v", column, err)
 		}
 		// if err := db.Migrator().RenameColumn(&database.Company{}, column, "linkedin"); err != nil {

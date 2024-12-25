@@ -11,7 +11,7 @@ export interface Job {
   experience?: number;
   salary_from?: number;
   salary_to?: number;
-  keywords?: KeywordsType[];
+  keywords?: string[];
   about_us?: string;
   description?: string;
   offer?: string;

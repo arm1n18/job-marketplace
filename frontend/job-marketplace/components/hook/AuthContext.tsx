@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { jwtDecode } from "jwt-decode";
 
 export interface Role {

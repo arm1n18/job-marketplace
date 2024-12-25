@@ -34,13 +34,13 @@ export default function CandidatesDetailPage({ params: { id } }: { params: { id:
 
     const handleResponse = (resumeID: number) => {
         setResume((prevResume) => {
-          if (prevResume!.id === resumeID) {
-            const updatedResume: Resume = { ...prevResume, status: { ...prevResume!.status, String: "APPLICATION_PENDING" } };
+            if (prevResume!.id === resumeID) {
+            const updatedResume: Resume = { ...prevResume, status: { ...prevResume!.status, String: "OFFER_PENDING" } };
             return updatedResume;
-          }
-          return prevResume;
+            }
+            return prevResume;
         });
-      };
+    };
 
     return (
         <div className="max-md:mx-1 mx-2 mb-24">
@@ -48,13 +48,6 @@ export default function CandidatesDetailPage({ params: { id } }: { params: { id:
             <ResumeMainCard
                 className="mt-12"
                 data={resume}
-                keywords={[{ id: 1, name: 'Embedded' },
-                { id: 2, name: 'Linux' },
-                { id: 3, name: 'LinuxPostgreSQL' },
-                { id: 4, name: 'Windows Server' },
-                { id: 5, name: 'Python' },
-                { id: 6, name: 'Golang' },
-                ]}
                 onApplyClick={() => handleResponse(resume.id!)}
                 resumeStatus={resume.status.String}
                 isMainPage={true}

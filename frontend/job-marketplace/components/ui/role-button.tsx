@@ -5,7 +5,7 @@ interface Props {
     className ?: string;
 }
 
-export const RoleButton: React.FC<Props> = ({role, isSelected, onClick,className }) => {
+export const RoleButton: React.FC<Props> = ({role, isSelected, onClick}) => {
     return (
         <>  
             <div

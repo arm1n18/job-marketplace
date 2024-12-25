@@ -3,6 +3,7 @@ import { ExternalLink } from "lucide-react";
 import { SectionDescription } from "@/components/ui/section-description";
 import { NoImgAvatars } from "@/components/ui/noImgAvatars";
 import { Company } from "@/types/company.type";
+import Image from 'next/image';
 
 interface Props extends Company{
     className ?: string;
@@ -23,7 +24,7 @@ export const CompanyCard: React.FC<Props> = ({
                 <div className="flex items-center gap-6 sm:justify-between">
                     {
                         image_url ? (
-                            <img className="rounded-[8px] w-16 h-16" src={image_url} alt="" />
+                            <Image className="rounded-[8px] w-16 h-16" width={256} height={256} src={image_url} alt="" />
                         ) : (<NoImgAvatars className="rounded-[8px] w-16 h-16 text-2xl" name={company_name} />)
                     }
                     <div className="flex flex-col gap-3">
@@ -37,11 +38,11 @@ export const CompanyCard: React.FC<Props> = ({
                 <div className="flex gap-3 max-sm:mt-6">
                     {
                         linkedin &&
-                        <a href={linkedin} target="_blank" className="flex gap-2"><img className="w-8 h-8" src="/images/icons/linkedin.png" alt="" /><span className="my-auto text-common-blue">LinkedIn</span></a>
+                        <a href={linkedin} target="_blank" className="flex gap-2"><Image className="w-8 h-8" width={64} height={64} src="/images/icons/linkedin.png" alt="" /><span className="my-auto text-common-blue">LinkedIn</span></a>
                     }
                     {
                         facebook && 
-                        <a href={facebook} target="_blank" className="flex gap-2"><img className="w-8 h-8" src="/images/icons/facebook.png" alt="" /><span className="my-auto text-common-blue">Facebook</span></a>
+                        <a href={facebook} target="_blank" className="flex gap-2"><Image className="w-8 h-8" width={64} height={64} src="/images/icons/facebook.png" alt="" /><span className="my-auto text-common-blue">Facebook</span></a>
                     }
                 </div>
             </header>

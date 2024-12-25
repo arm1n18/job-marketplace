@@ -4,9 +4,11 @@ import FetchDataService from "./FetchDataService";
 import FormService from "./FormService";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { url } from "inspector";
 
 interface Company {
     id?: string | undefined;
+    url?: string;
     data?: any;
     params?: URLSearchParams;
     router?: ReturnType<typeof useRouter>;
@@ -20,6 +22,7 @@ interface Company {
 
 export default class CompanyService {
     private id: string | undefined;
+    private url?: string;
     private params?: URLSearchParams;
     private data?: {[key: string]: string | number | File} | FormData;
     private router?: ReturnType<typeof useRouter>;
@@ -28,14 +31,12 @@ export default class CompanyService {
     private setCompanyJobs?: any;
     private setSelectedJob?: (data: any) => void;
 
-    private JWTService: JWTService
     private fetchDataService: FetchDataService
     private SubmitForm: FormService
 
     constructor(company: Company) {
-        this.JWTService = new JWTService();
         this.fetchDataService = new FetchDataService({
-            url: `company/jobs`,
+            url: `company/${this.url ? this.url: ''}`,
             params: company.params,
             setLoading: company.setLoading,
             setData: company.setCompany,
@@ -49,7 +50,6 @@ export default class CompanyService {
             message: "Профіль компанії створено успішно",
             redirectURL: 'jobs/create',
         })
-        this.router = company.router!,
         this.data = company.data;
         this.id = company.id;
         this.params = company.params;
@@ -82,12 +82,15 @@ export default class CompanyService {
         }
     };
 
+    public async fetchCompaniesList () {
+        this.fetchDataService.getData();
+    }
+
     public async fetchCompanyJobs () {
         this.fetchDataService.getData();
     }
 
     public async createCompanyProfile() {
-        // return this.SubmitForm.submitForm();
         try {
             const response = await axios.post(`http://192.168.0.106:8080/company/`, this.data ,{
                 headers: {

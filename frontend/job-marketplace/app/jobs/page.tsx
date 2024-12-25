@@ -29,6 +29,7 @@ export default function Jobs() {
     const screenWidth = useWindowWidth();
 
     const updateFilters = (updatedFilters: Partial<FiltersType>) => {
+        filters.page = '';
         setFilters((filters) => ({
             ...filters,
             ...updatedFilters,
@@ -41,14 +42,15 @@ export default function Jobs() {
         router.push(`?${params.toString()}`);
         const getJobs = new JobsService({url: "jobs/", params, setLoading, setData: setJobs, setSelectedData: setSelectedJob});
         getJobs.fetchJobs();
-    }, [searchFilter, filters]);
+    }, [params, router]);
+    // was     }, [searchFilter, filters]);
     
     const handleSearch = async (query: string) => {
         if(query.trim() === "") router.push(`/jobs`);
         if( query.length < 2) return;
         router.push(`?search=${query}`);
     }
-    
+
     const handleResponse = (jobID: number, status: string) => {
         setJobs((prevJobs) =>{
             const updatedJobs = prevJobs.map((prevJob) => {
@@ -64,7 +66,6 @@ export default function Jobs() {
         });
     };
     
-
     return <>
         <div className="mx-4 mb-24">
         
@@ -84,21 +85,24 @@ export default function Jobs() {
                         ))
                     ) : (
                         jobs != null && jobs.length > 0 && jobs.map((job, index: number) => (
-
                                 <JobCard
                                     className={`${index != jobs.length - 1 ? 'mb-3' : ''} ${selectedJob === job && screenWidth > 768 ? 'bg-gray-selected' : 'bg-non-selected'} hover:bg-[#F7F7F8] transition duration-200`}
                                     key={job.id}
-                                    onClick={() => {screenWidth > 768 ? setSelectedJob(job) : router.push(`/jobs/${job.id}`)}}
+                                    onClick={() => {
+                                        if (screenWidth > 768) {
+                                          setSelectedJob(job);
+                                        } else {
+                                          router.push(`/jobs/${job.id}`);
+                                        }
+                                      }}
                                     data={job}
                                     keyInfo={[
                                         job.city_name || "Україна",
                                         job.employment_name ?? "",
-                                        job.experience
-                                            ? `${job.experience.toString()} ${job.experience > 4 ? "років" : (job.experience > 1 ? "роки" : "рік")} досвіду`
-                                            : "Без досвіду",
+                                        JobsService.formattedExperience(job.experience!),
                                         job.subcategory_name ?? job.category_name ?? "",
-                                    ]}/>
-      
+                                    ]}
+                                />
                             ))
                     )}
                    <MobileFiltersSection onUpdateFilters={updateFilters}/>
@@ -115,14 +119,6 @@ export default function Jobs() {
                             jobStatus={selectedJob.status.String}
                             route={selectedJob.application_id ? `offer` : `application`}
                             responseID={selectedJob.application_id ? selectedJob.application_id : selectedJob.offer_id}
-                            keywords={[
-                            { id: 1, name: 'Embedded' },
-                            { id: 2, name: 'Linux' },
-                            { id: 3, name: 'LinuxPostgreSQL' },
-                            { id: 4, name: 'Windows Server' },
-                            { id: 5, name: 'Python' },
-                            { id: 6, name: 'Golang' },
-                            ]}
                         />
                     )
                 )}

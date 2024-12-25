@@ -3,6 +3,8 @@ package resume
 import (
 	"database/sql"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 type ResumeStruct struct{}
@@ -15,6 +17,7 @@ type Resume struct {
 	Achievements    *string        `json:"achievements"`
 	CategoryName    string         `json:"category_name"`
 	SubcategoryName *string        `json:"subcategory_name"`
+	Keywords        pq.StringArray `json:"keywords"`
 	CityName        *string        `json:"city"`
 	Experience      float64        `json:"experience"`
 	EmploymentName  string         `json:"employment_name"`

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '../ui/button';
 import Link from 'next/link';
 
-export const AuthButtons = React.memo(() => {
+const AuthButtons = React.memo(() => {
   return (
     <div className="flex gap-6">
       <Button asChild variant="outline">
@@ -14,3 +14,7 @@ export const AuthButtons = React.memo(() => {
     </div>
   );
 });
+
+AuthButtons.displayName = 'AuthButtons';
+
+export { AuthButtons };

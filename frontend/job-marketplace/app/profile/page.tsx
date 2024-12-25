@@ -11,7 +11,7 @@ export default function Profile() {
     const [formData, setFormData] = useState<ProfileType | undefined>(undefined);
     const [section, setSection] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    // const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const { role } = useAuth();
 
     useEffect(() => {
