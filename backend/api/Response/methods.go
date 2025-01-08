@@ -160,7 +160,7 @@ func ApplyForResume(c *fiber.Ctx, applyData *ApplyData, db *sql.DB, status strin
 	}
 
 	emailData := Email{
-		To:      "bachinskijdenis@gmail.com",
+		To:      "",
 		Subject: "Вам запропонували вакансію",
 		Body: Body{
 			ID:                email.Body.ID,
